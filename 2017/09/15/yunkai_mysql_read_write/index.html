@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>mysql实现读写分离 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="介绍mysql单机配置多实例子后实现mysql主从复制此篇中已经提到mysql主从复制和读写分离的概念和应用场景，并且告诉大家如何去实现mysql的主从复制，这也为我们今天要开展的mysql读写分离提供了数据一致性的服务。那么，话不多说，开始我们今天的实践之旅。 实践环境JDK 1.8.0_131、MAVEN apache-maven-3.5.0 技术栈SpringBoot、Mybatis、Mys">
+<meta name="keywords" content="mysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql实现读写分离">
+<meta property="og:url" content="http://yoursite.com/2017/09/15/yunkai_mysql_read_write/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="介绍mysql单机配置多实例子后实现mysql主从复制此篇中已经提到mysql主从复制和读写分离的概念和应用场景，并且告诉大家如何去实现mysql的主从复制，这也为我们今天要开展的mysql读写分离提供了数据一致性的服务。那么，话不多说，开始我们今天的实践之旅。 实践环境JDK 1.8.0_131、MAVEN apache-maven-3.5.0 技术栈SpringBoot、Mybatis、Mys">
+<meta property="og:updated_time" content="2018-03-17T14:18:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mysql实现读写分离">
+<meta name="twitter:description" content="介绍mysql单机配置多实例子后实现mysql主从复制此篇中已经提到mysql主从复制和读写分离的概念和应用场景，并且告诉大家如何去实现mysql的主从复制，这也为我们今天要开展的mysql读写分离提供了数据一致性的服务。那么，话不多说，开始我们今天的实践之旅。 实践环境JDK 1.8.0_131、MAVEN apache-maven-3.5.0 技术栈SpringBoot、Mybatis、Mys">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_mysql_read_write" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/15/yunkai_mysql_read_write/" class="article-date">
+  <time datetime="2017-09-15T14:48:10.000Z" itemprop="datePublished">2017-09-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      mysql实现读写分离
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><a href="https://jiongjiongge.github.io/2017/09/08/yunkai_mysql_master_slave/#more" target="_blank" rel="noopener">mysql单机配置多实例子后实现mysql主从复制</a>此篇中已经提到mysql主从复制和读写分离的概念和应用场景，并且告诉大家如何去实现mysql的主从复制，这也为我们今天要开展的mysql读写分离提供了数据一致性的服务。那么，话不多说，开始我们今天的实践之旅。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131、MAVEN apache-maven-3.5.0</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis、Mysql<br><a id="more"></a></p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><p>一、新建SpringBoot项目，并加入mysql依赖和阿里云连接池依赖：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;mysql&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;5.1.21&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;com.alibaba&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;druid&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;1.0.16&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<p>二、构建CalmWangUserModel用户对象，以及对应的Dao层和Service层方法。用户对象用来实现新增和筛选操作，来完成对mysql读写分离的体现。</p>
+<p>三、实现Mysql主从的配置</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1、添加资源文件application.yml，文件内容如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">druid:</span><br><span class="line">    type: com.alibaba.druid.pool.DruidDataSource</span><br><span class="line">    master:</span><br><span class="line">        url: jdbc:mysql://127.0.0.1:3306/mybatis?useUnicode=true&amp;characterEncoding=utf8&amp;characterSetResults=utf8&amp;useSSL=true</span><br><span class="line">        driver-class-name: com.mysql.jdbc.Driver</span><br><span class="line">        username: root</span><br><span class="line">        password: yunkai</span><br><span class="line">        initial-size: 5</span><br><span class="line">        min-idle: 1</span><br><span class="line">        max-active: 100</span><br><span class="line">        test-on-borrow: true</span><br><span class="line">    slave:</span><br><span class="line">        url: jdbc:mysql://127.0.0.1:3307/mybatis?useUnicode=true&amp;characterEncoding=utf8&amp;characterSetResults=utf8&amp;useSSL=true</span><br><span class="line">        driver-class-name: com.mysql.jdbc.Driver</span><br><span class="line">        username: root</span><br><span class="line">        password: yunkai</span><br><span class="line">        initial-size: 5</span><br><span class="line">        min-idle: 1</span><br><span class="line">        max-active: 100</span><br><span class="line">        test-on-borrow: true</span><br></pre></td></tr></table></figure></p>
+<p>配置说明：<br>druid:type:com.alibaba.druid.pool.DruidDataSource  &nbsp;&nbsp;声明mysql连接池使用的是阿里巴巴开源项目druid连接池。<br>druid:master是对mysql主服务器的配置，配置项：url、driver-class-name、username、password设置mysql数据源的基本信息，min-idle、max-active、test-on-borrow分别设置最小连接池数量、最大连接池数量、申请连接时执行validationQuery检测连接是否有效。<br>druid:slave配置与druid：master相同，就不重复说明。</p>
+<p>四、创建数据源<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">@EnableTransactionManagement</span><br><span class="line">public class DataSourceConfiguration &#123;</span><br><span class="line"></span><br><span class="line">    private Class&lt;? extends DataSource&gt; dataSourceType;</span><br><span class="line"></span><br><span class="line">    @Bean(name = &quot;masterDataSource&quot;)</span><br><span class="line">    @Primary</span><br><span class="line">    @ConfigurationProperties(prefix = &quot;druid.master&quot;)</span><br><span class="line">    public DataSource masterDataSource()&#123;</span><br><span class="line">        return DataSourceBuilder.create().type(dataSourceType).build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean(name = &quot;slaveDataSource&quot;)</span><br><span class="line">    @ConfigurationProperties(prefix = &quot;druid.slave&quot;)</span><br><span class="line">    public DataSource slaveDataSource()&#123;</span><br><span class="line">        return DataSourceBuilder.create().type(dataSourceType).build();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码说明：<br>1、private Class&lt;? extends DataSource&gt; dataSourceType; 表示声明的dataSourceType必须是DataSource的子类<br>2、@ConfigurationProperties(prefix = “druid.master”)注解可以绑定application.yml中配置的druid.master的属性<br>3、@Primary默认使用创建主数据源的方法</p>
+<p>五、SpringBoot启动时将多数据源注入到SqlSessionFactoryBean中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">@AutoConfigureAfter(&#123;DataSourceConfiguration.class&#125;)</span><br><span class="line">public class MybatisConfiguration &#123;</span><br><span class="line"></span><br><span class="line">    @Resource(name = &quot;masterDataSource&quot;)</span><br><span class="line">    private DataSource masterDataSource;</span><br><span class="line">    @Resource(name = &quot;slaveDataSource&quot;)</span><br><span class="line">    private DataSource slaveDataSource;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public SqlSessionFactory sqlSessionFactory() throws Exception &#123;</span><br><span class="line">        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();</span><br><span class="line">        //此行代码与数据源的注入有关</span><br><span class="line">        bean.setDataSource(roundRobinDataSouceProxy());</span><br><span class="line"></span><br><span class="line">        //添加XML目录</span><br><span class="line">        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();</span><br><span class="line">        try &#123;</span><br><span class="line">            bean.setConfigLocation(resolver.getResource(&quot;classpath:mybatis-config.xml&quot;));</span><br><span class="line">            return bean.getObject();</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            throw new RuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public AbstractRoutingDataSource roundRobinDataSouceProxy()&#123;</span><br><span class="line">        ReadWriteSplitRoutingDataSource proxy = new ReadWriteSplitRoutingDataSource();</span><br><span class="line">        Map&lt;Object,Object&gt; targetDataResources = new HashMap();</span><br><span class="line">        targetDataResources.put(DbContextHolder.DbType.MASTER,masterDataSource);</span><br><span class="line">        targetDataResources.put(DbContextHolder.DbType.SLAVE,slaveDataSource);</span><br><span class="line">        proxy.setDefaultTargetDataSource(masterDataSource);//默认源</span><br><span class="line">        proxy.setTargetDataSources(targetDataResources);</span><br><span class="line">        proxy.afterPropertiesSet();</span><br><span class="line">        return proxy;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public class ReadWriteSplitRoutingDataSource extends AbstractRoutingDataSource &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected Object determineCurrentLookupKey() &#123;</span><br><span class="line">        return DbContextHolder.getDbType();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明：<br>1、数据源的注入与roundRobinDataSouceProxy()方法有关，与添加XML目录相关的代码没有必然的联系，此处加入XML目录相关的代码原因是在我的工程中，mybatis使用了Velocity脚本语言来定义Mapper文件中的动态SQL，有兴趣的同学可以下载工程。<br>2、在roundRobinDataSouceProxy()方法中，定义了ReadWriteSplitRoutingDataSource对象，此对象为AbstractRoutingDataSource对象的扩展，它是Spring提供的一个可以根据用户发起的不同请求/标识去切换不同的数据源，在上述代码中，已经给proxy对象设置了masterDataSource、slaveDataSource两个数据源。<br>3、targetDataResources.put(DbContextHolder.DbType.MASTER,masterDataSource);以Map的&lt;Key，Value&gt;形式，分别给数据源设置对应的标识。</p>
+<p>六、将不同的数据源标识记录在ThreadLocal中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">public class DbContextHolder &#123;</span><br><span class="line"></span><br><span class="line">    public enum DbType&#123;</span><br><span class="line">        MASTER,SLAVE</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static final ThreadLocal&lt;DbType&gt; contextHolder = new ThreadLocal&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    public static void setDbType(DbType dbType)&#123;</span><br><span class="line">        if(dbType==null)throw new NullPointerException();</span><br><span class="line">        contextHolder.set(dbType);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static DbType getDbType()&#123;</span><br><span class="line">        return contextHolder.get()==null?DbType.MASTER:contextHolder.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void clearDbType()&#123;</span><br><span class="line">        contextHolder.remove();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>相关说明：<br>1、ThreadLocal维护变量时，ThreadLocal为每个使用该变量的线程提供独立的变量副本，所以每个线程都可以独立地改变自己的副本，而不会影响其他线程所对应的副本。<br>2、此类作用是将不同的数据源标识记录统一管理，为后续的AOP实现拦截使用不同的数据源提供帮助。</p>
+<p>七、声明注解<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Target(&#123;ElementType.METHOD,ElementType.TYPE&#125;)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">public @interface ReadOnlyConnection &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过注解标识当前的service方法该使用哪个数据源，需要调用从库的service方法上需添加此注解。</p>
+<p>八、AOP拦截<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">@Aspect</span><br><span class="line">@Component</span><br><span class="line">public class ControllerAspect&#123;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(ControllerAspect.class);</span><br><span class="line"></span><br><span class="line">    @Around(&quot;@annotation(readOnlyConnection)&quot;)</span><br><span class="line">    public Object proceed(ProceedingJoinPoint proceedingJoinPoint, ReadOnlyConnection readOnlyConnection) throws Throwable &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            logger.info(&quot;set database connection to read only&quot;);</span><br><span class="line">            DbContextHolder.setDbType(DbContextHolder.DbType.SLAVE);</span><br><span class="line">            Object result = proceedingJoinPoint.proceed();</span><br><span class="line">            logger.info(&quot;result = &#123;&#125;&quot;, result);</span><br><span class="line">            return result;</span><br><span class="line">        &#125;finally &#123;</span><br><span class="line">            DbContextHolder.clearDbType();</span><br><span class="line">            logger.info(&quot;restore database connection&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>AOP拦截service下的所有有@ReadOnlyConnection注解的方法时，会将注入Slave标识到Threadlocal中，在获取数据源的时候，会通过Threadlocal中的Slave标识传给SqlSessionFactory，从而使得在方法上有@ReadOnlyConnection注解，操作的数据库为从库。</p>
+<p>九、执行，查看结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">@Service</span><br><span class="line">public class CalmWangUserServiceImpl implements CalmWangUserServiceI &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private CalmWangUserDao miaoGeUserDao;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    @ReadOnlyConnection</span><br><span class="line">    public List&lt;CalmWangUserModel&gt; findUserList() &#123;</span><br><span class="line">        List&lt;CalmWangUserModel&gt; users = miaoGeUserDao.findAll();</span><br><span class="line">        return users;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Short saveUser(String userName, String userPhone) &#123;</span><br><span class="line">        CalmWangUserModel user = new CalmWangUserModel();</span><br><span class="line">        user.setUserPhone(userPhone);</span><br><span class="line">        user.setUserName(userName);</span><br><span class="line">        miaoGeUserDao.saveUser(userName, userPhone);</span><br><span class="line">        Short userID = miaoGeUserDao.last_insert_id();</span><br><span class="line">        return userID;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>结果说明：<br>service层编写了两个方法，执行后，可以看到，findUserList()方法取的是从库中所有数据，而saveUser()方法则会把数据保存在主库中，从而实现了本篇中提到的Mysql读写分离。这时如果你设置成了主从复制，那么在saveUser()方法执行后，也会在从库中出现对应的数据信息。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在调试上面的方法时，碰到了一些问题，也看了上述方法的一些源码后才把问题解决，因此认识到自己停留的层面还需继续深挖，加油，给自己打个气。当然最后还是老套路：童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。</p>
+<p>附<a href="https://github.com/JiongJiongGe/BlogMysqlReadWrite" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<p>Links：<br><a href="http://www.jianshu.com/p/8813ec02926a" target="_blank" rel="noopener">http://www.jianshu.com/p/8813ec02926a</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/15/yunkai_mysql_read_write/" data-id="cjevgl2tq000dqibr35hyq3v3" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/13/yunkai_hessian/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Hessian远程调用服务实现
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/08/yunkai_mysql_master_slave/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">mysql单机配置多实例子后实现mysql主从复制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

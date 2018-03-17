@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Spring之AOP介绍 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概念AOP即Aspect Oriented Programming。它利用一种称为”横切”的技术，将那些影响多个类公众行为封装到一个可重用模块中，并将其称为“Aspect”，即切面。切面，简单说就是那些与业务无关，却将业务模块所公同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，有利于之后的扩展和维护。 AOP将程序系统代码模块分为两个部分：核心关注点和横切关注点。核心关注点主要与">
+<meta name="keywords" content="aop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring之AOP介绍">
+<meta property="og:url" content="http://yoursite.com/2018/01/01/yunkai_aop/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="概念AOP即Aspect Oriented Programming。它利用一种称为”横切”的技术，将那些影响多个类公众行为封装到一个可重用模块中，并将其称为“Aspect”，即切面。切面，简单说就是那些与业务无关，却将业务模块所公同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，有利于之后的扩展和维护。 AOP将程序系统代码模块分为两个部分：核心关注点和横切关注点。核心关注点主要与">
+<meta property="og:updated_time" content="2018-03-17T14:18:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring之AOP介绍">
+<meta name="twitter:description" content="概念AOP即Aspect Oriented Programming。它利用一种称为”横切”的技术，将那些影响多个类公众行为封装到一个可重用模块中，并将其称为“Aspect”，即切面。切面，简单说就是那些与业务无关，却将业务模块所公同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，有利于之后的扩展和维护。 AOP将程序系统代码模块分为两个部分：核心关注点和横切关注点。核心关注点主要与">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_aop" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/01/yunkai_aop/" class="article-date">
+  <time datetime="2018-01-01T02:51:10.000Z" itemprop="datePublished">2018-01-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Spring之AOP介绍
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>AOP即Aspect Oriented Programming。它利用一种称为”横切”的技术，将那些影响多个类公众行为封装到一个可重用模块中，并将其称为“Aspect”，即切面。切面，简单说就是那些与业务无关，却将业务模块所公同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，有利于之后的扩展和维护。</p>
+<p>AOP将程序系统代码模块分为两个部分：核心关注点和横切关注点。核心关注点主要与业务处理相关，而横切关注点经常发生在核心关注点的多处，比如日志的打印(日志打印Controller请求的接口地址、方式以及参数)。AOP的作用在于分离系统中的各种关注点，并将核心关注点和横切关注点分离开。<br><a id="more"></a></p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>大🐮：云开，你知道当有请求发过来时，Controller和Service方法调用前后，会打印一些请求信息是通过什么实现的么？<br>云开：这可难不到我，通过AOP来实现，AOP会提供前置、后置等方式来通知。<br>大🐮：好，那你能具体的给我介绍下AOP么？<br>云开：这。。。我不太清楚，我需要去详细的了解下，然后跟你说我的看法。<br>大🐮：好的，等你消息。</p>
+<h2 id="AOP名词介绍"><a href="#AOP名词介绍" class="headerlink" title="AOP名词介绍"></a>AOP名词介绍</h2><p>1、横切关注点<br>横切关注点指的是对哪些方法进行拦截，拦截后怎么处理。<br>2、切面(Aspect)<br>切面是对横切关注点的抽象。<br>3、连接点(Joinpoint)<br>连接点指的是被拦截到的点，由于Spring中只支持方法类型的连接点，所以这里连接点通常指被拦截到的方法信息(例如：方法类名、方法名称)。<br>4、切入点(Pointcut)<br>对连接点进行拦截的定义(即去配置拦截哪些方法)。<br>5、通知(Advice)<br>通知指的是拦截到连接点之后要执行的代码。通知分为前置、后置、异常、最终、环绕五类通知。<br>6、目标对象(Bean)<br>代理的目标对象。<br>7、织入(weave)<br>将切面应用到目标对象并导致代理对象创建的过程。<br>8、引入(introduction)<br>在不修改代码的前提下，引入可以在运行期为类动态地添加一些方法或字段。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131<br>MAVEN apache-maven-3.5.0 </p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><p>由于使用的是SpringBoot，所以在定义AOP时，采用注解的方式。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">package com.mybatis.aop;</span><br><span class="line"></span><br><span class="line">import com.mybatis.config.DruidConfig;</span><br><span class="line">import org.aopalliance.intercept.Joinpoint;</span><br><span class="line">import org.aspectj.lang.JoinPoint;</span><br><span class="line">import org.aspectj.lang.Signature;</span><br><span class="line">import org.aspectj.lang.annotation.Aspect;</span><br><span class="line">import org.aspectj.lang.annotation.Before;</span><br><span class="line">import org.aspectj.lang.annotation.Pointcut;</span><br><span class="line">import org.aspectj.lang.reflect.MethodSignature;</span><br><span class="line">import org.slf4j.Logger;</span><br><span class="line">import org.slf4j.LoggerFactory;</span><br><span class="line">import org.springframework.stereotype.Component;</span><br><span class="line">import org.springframework.util.StringUtils;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestAttribute;</span><br><span class="line">import org.springframework.web.context.request.RequestAttributes;</span><br><span class="line">import org.springframework.web.context.request.RequestContextHolder;</span><br><span class="line">import org.springframework.web.context.request.ServletRequestAttributes;</span><br><span class="line"></span><br><span class="line">import javax.servlet.http.HttpServletRequest;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * aop controller打印请求信息切面</span><br><span class="line"> *</span><br><span class="line"> * Created by yunkai on 2017/6/12.</span><br><span class="line"> */</span><br><span class="line">@Aspect</span><br><span class="line">@Component</span><br><span class="line">public class ControllerAspect &#123;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(DruidConfig.class);</span><br><span class="line"></span><br><span class="line">    @Pointcut(&quot;execution(public * com.*.controller.*.*(..))&quot;)</span><br><span class="line">    public void apiLog() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 运行controller之前打印请求信息</span><br><span class="line">     */</span><br><span class="line">    @Before(&quot;apiLog()&quot;)</span><br><span class="line">    public void doBefore(JoinPoint jp) &#123;</span><br><span class="line">        RequestAttributes attribute = RequestContextHolder.getRequestAttributes();</span><br><span class="line">        ServletRequestAttributes servlet = (ServletRequestAttributes) attribute;</span><br><span class="line">        HttpServletRequest request = servlet.getRequest();</span><br><span class="line">        //请求路径</span><br><span class="line">        logger.info(&quot;请求路径：                   &quot; + request.getRequestURI().toString());</span><br><span class="line">        //请求方式</span><br><span class="line">        logger.info(&quot;请求方式：                   &quot; + request.getMethod());</span><br><span class="line">        //请求ip</span><br><span class="line">        logger.info(&quot;请求IP：                     &quot; + request.getRemoteAddr());</span><br><span class="line">        //请求类</span><br><span class="line">        logger.info(&quot;请求类：                     &quot; + jp.getSignature().getDeclaringTypeName());</span><br><span class="line">        //请求方法</span><br><span class="line">        logger.info(&quot;请求方法：                   &quot; + jp.getSignature().getName());</span><br><span class="line">        //请求参数</span><br><span class="line">        if(request.getMethod().equals(&quot;GET&quot;))&#123;</span><br><span class="line">            String queryString = request.getQueryString();</span><br><span class="line">            if(!StringUtils.isEmpty(queryString)) &#123;</span><br><span class="line">                String[] stringArr = queryString.split(&quot;&amp;&quot;);</span><br><span class="line">                if(stringArr != null &amp;&amp; stringArr.length &gt; 0) &#123;</span><br><span class="line">                    for(int i = 0; i &lt; stringArr.length; i++) &#123;</span><br><span class="line">                        String[] params = stringArr[i].split(&quot;=&quot;);</span><br><span class="line">                        logger.info(&quot;请求参数名：     &quot; + params[0] + &quot;         请求参数值：     &quot; + params[1]);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;else &#123;</span><br><span class="line">            Object[] valueParams = jp.getArgs();</span><br><span class="line">            Signature signature = jp.getSignature();</span><br><span class="line">            MethodSignature methodSignature = (MethodSignature) signature;</span><br><span class="line">            String[] stringParams = methodSignature.getParameterNames();</span><br><span class="line">            if(stringParams != null &amp;&amp; stringParams.length &gt; 0 ) &#123;</span><br><span class="line">                for(int i =0; i &lt; stringParams.length; i++) &#123;</span><br><span class="line">                    logger.info(&quot;请求参数名：     &quot; + stringParams[i] + &quot;         请求参数值：     &quot; + valueParams[i]);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码说明：<br>1、@Aspect 用注解方式定义一个切面。<br>2、@Component 将普通的pojo实例化到Spring容器中，交由Spring容器管理，相当于XML配置文件中的<bean id="" class=""><br>3、JoinPoint jp，jp对象即连接点，通过jp对象可以拿到请求类、请求方法以及请求参数，并通过logger的方式打印日志。<br>(1)、获取请求类名称 jp.getSignature().getDeclaringTypeName()<br>(2)、获取请求方法名称  jp.getSignature().getName()<br>(3)、获取请求参数 jp.getArgs()<br>4、@Pointcut(“execution(public <em> com.</em>.controller.<em>.</em>(..))”)切入点的定义。<br>上面的表达式表示controller包下，所有的类(第三个<em>)，所有的方法(第四个</em>)，方法的任意参数个数(..)都会进行拦截。<br>5、@Before(“apiLog()”) 即通知，表示拦截到连接点后需要执行的功能代码，此处主要是打印请求信息(请求路径、请求方式、请求IP、请求类、请求方法以及请求参数)。由于GET请求方式和POST请求方式，参数的请求格式不同，故会根据请求的方式执行不同的处理逻辑去打印请求参数信息。<br>(1)、@Before 执行切入点方法前执行<br>(2)、@AfterReturning 运行方法后执行(请求成功)<br>(3)、@AfterThrowing Throw后执行<br>(4)、@After 无论方法以何种方式结束，都会执行，类型于(try catch finally中的fianlly)<br>(5)、@Around 环绕执行 使用ProceedingJoinPoint对象，既可以在目标方法之前织入增强动作，也可以在执行目标方法之后织入增强动作。<br>(6)、@Pointcut、@Before以及通知方法这个过程就称之为织入。</bean></p>
+<p>大🐮：云开，几个基本的名词和配置你已经了解清楚了，那么你知道AOP除了打印一些日志信息外，还可以为我们提供别的帮助么？<br>云开：大🐮，再给我点时间去调研一下。<br>大🐮：好的，加油。</p>
+<p>附<a href="https://github.com/JiongJiongGe/BlogAop" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇中介绍了AOP在增强请求动作上解耦、简化代码的作用，我也会继续调研AOP在其他场景下的应用，会再跟大家分享。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。</p>
+<p>LINKS：<br><a href="https://juejin.im/user/59e614636fb9a044ff308a05" target="_blank" rel="noopener">云开的掘金地址</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/01/yunkai_aop/" data-id="cjevgl2tb0001qibr7l4tby7z" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aop/">aop</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/08/yunkai_aop_application/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Spring之AOP应用场景(二)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/12/23/yunkai_thread_executor/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">群发消息多线程的应用</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

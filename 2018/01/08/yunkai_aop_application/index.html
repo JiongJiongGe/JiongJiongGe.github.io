@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Spring之AOP应用场景(二) | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概念在上篇中，已经介绍了AOP的基本名词和配置，同时也了解了AOP在打印日志信息的应用。云开为了履行对大🐮的承诺，继续调研AOP在其他场景下的应用，以下几点是调研结果，稍后会为童鞋们详细介绍：1、HTTP接口鉴权；2、方法耗时统计。 应用场景云开：大🐮，我调研到了AOP还有以下两个应用场景：HTTP接口鉴权和方法耗时统计。大🐮：好，那你给我介绍介绍。云开：好的，那我一个个描述给你听。">
+<meta name="keywords" content="aop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring之AOP应用场景(二)">
+<meta property="og:url" content="http://yoursite.com/2018/01/08/yunkai_aop_application/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="概念在上篇中，已经介绍了AOP的基本名词和配置，同时也了解了AOP在打印日志信息的应用。云开为了履行对大🐮的承诺，继续调研AOP在其他场景下的应用，以下几点是调研结果，稍后会为童鞋们详细介绍：1、HTTP接口鉴权；2、方法耗时统计。 应用场景云开：大🐮，我调研到了AOP还有以下两个应用场景：HTTP接口鉴权和方法耗时统计。大🐮：好，那你给我介绍介绍。云开：好的，那我一个个描述给你听。">
+<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_aop_time_count.png">
+<meta property="og:updated_time" content="2018-03-17T14:18:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring之AOP应用场景(二)">
+<meta name="twitter:description" content="概念在上篇中，已经介绍了AOP的基本名词和配置，同时也了解了AOP在打印日志信息的应用。云开为了履行对大🐮的承诺，继续调研AOP在其他场景下的应用，以下几点是调研结果，稍后会为童鞋们详细介绍：1、HTTP接口鉴权；2、方法耗时统计。 应用场景云开：大🐮，我调研到了AOP还有以下两个应用场景：HTTP接口鉴权和方法耗时统计。大🐮：好，那你给我介绍介绍。云开：好的，那我一个个描述给你听。">
+<meta name="twitter:image" content="http://obbgpy87z.bkt.clouddn.com/blog_aop_time_count.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_aop_application" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/08/yunkai_aop_application/" class="article-date">
+  <time datetime="2018-01-07T16:59:59.000Z" itemprop="datePublished">2018-01-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Spring之AOP应用场景(二)
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>在上篇中，已经介绍了AOP的基本名词和配置，同时也了解了AOP在打印日志信息的应用。云开为了履行对大🐮的承诺，继续调研AOP在其他场景下的应用，以下几点是调研结果，稍后会为童鞋们详细介绍：<br>1、HTTP接口鉴权；<br>2、方法耗时统计。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>云开：大🐮，我调研到了AOP还有以下两个应用场景：HTTP接口鉴权和方法耗时统计。<br>大🐮：好，那你给我介绍介绍。<br>云开：好的，那我一个个描述给你听。<br><a id="more"></a></p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131<br>MAVEN apache-maven-3.5.0 </p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><h4 id="HTTP接口鉴权"><a href="#HTTP接口鉴权" class="headerlink" title="HTTP接口鉴权"></a>HTTP接口鉴权</h4><p>问：为什么要接口鉴权？<br>答：当我们提供的HTTP RESTFUL服务会提供一些比较敏感的信息，为了保证信息的安全，因此会对这些接口进行调用方权限的校验。实现这样的需求方法很多，例如我们可以在每个HTTP接口方法中对服务请求的调用方进行权限检查，当调用方权限不符时，返回错误，这样做并非不可，不过如果我们的api接口较多时，每个接口都进行这样判断，无疑有很多冗余代码，并且存在遗忘的风险，造成潜在的bug。为解决这样的问题，我们今天的主角AOP就闪亮登场了。</p>
+<p>针对需求，进行设计：<br>1、提供一个特殊的注解AuthChecker，有此注解所标注的Controller、Service等方法需调用方权限的认证。<br>2、利用Spring AOP，以@annotation切点标志符匹配有注解AuthChecker所标注的joinpoint。<br>3、判断调用者请求中的Cookie是否带有我们制定的token，如果有，则默认权限合法，否则权限不合法，返回错误信息。</p>
+<p>AuthChecker注解类<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Target(ElementType.METHOD)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">public @interface AuthChecker &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>AOP配置信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">@Aspect</span><br><span class="line">@Component</span><br><span class="line">public class ControllerAspect &#123;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(DruidConfig.class);</span><br><span class="line">    </span><br><span class="line">    @Pointcut(&quot;@annotation(com.mybatis.aop.AuthChecker)&quot;)</span><br><span class="line">    public void checkAuth()&#123;&#125;</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    //方法权限验证，是否有权限执行</span><br><span class="line">    @Around(&quot;checkAuth()&quot;)</span><br><span class="line">    public Object checkAuth(ProceedingJoinPoint jp)&#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            RequestAttributes attribute = RequestContextHolder.getRequestAttributes();</span><br><span class="line">            ServletRequestAttributes servlet = (ServletRequestAttributes) attribute;</span><br><span class="line">            HttpServletRequest request = servlet.getRequest();</span><br><span class="line">            String X_userToken = getXUserToken(request);</span><br><span class="line">            if(StringUtils.isEmpty(X_userToken))&#123;</span><br><span class="line">                logger.info(&quot;权限不合法&quot;);</span><br><span class="line">                return RpcResult.ofError(ErrorCode.BIZ_ERROR.getCode(), ErrorCode.BIZ_ERROR.getMsg(&quot;权限不合法&quot;));</span><br><span class="line">            &#125;</span><br><span class="line">            return jp.proceed();</span><br><span class="line">        &#125;catch (Throwable e)&#123;</span><br><span class="line">            logger.error(&quot;aop check auth error : &#123;&#125;&quot;, e);</span><br><span class="line">            return RpcResult.ofError(ErrorCode.BIZ_ERROR.getCode(), ErrorCode.BIZ_ERROR.getMsg(&quot;错误&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //获取token，是否存在，从而判断权限是否合法</span><br><span class="line">    private String getXUserToken(HttpServletRequest request)&#123;</span><br><span class="line">        Cookie[] cookies = request.getCookies();</span><br><span class="line">        if(cookies == null)&#123;</span><br><span class="line">            return &quot;&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        for(Cookie cookie : cookies)&#123;</span><br><span class="line">            if(cookie.getName().equalsIgnoreCase(&quot;authToken&quot;))&#123;</span><br><span class="line">                logger.info(&quot;cookie value = &#123;&#125;&quot;, cookie.getValue());</span><br><span class="line">                return cookie.getValue();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return &quot;&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>@Pointcut(“@annotation(com.mybatis.aop.AuthChecker)”)切入点定义，会对有@AuthChecker注释的方法进行拦截。<br>@Around(“checkAuth()”) 定义一个通知(Advice)。Around增强处理可在执行目的方法之前也可以在之后。与Before和AfterReturning增强处理不同的是，Around增强处理可以决定目标方法在什么时候执行，如何执行，甚至可以完全组织目标方法的执行。<br>首先对访问有注解@AuthChecker的方法进行拦截，拦截后判断调用方请求中的Rookie是否存在token，如果存在，则权限合法，可以访问对应Controller接口，进行请求；如果不存在，则直接返回权限不合法的信息。</p>
+<p>请求访问地址<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/aop&quot;)</span><br><span class="line">public class AopController &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private YunKaiUserService yunKaiUserService;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * controller方法需要AuthChecker</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    @RequestMapping(value = &quot;/not/need/check/auth&quot;)</span><br><span class="line">    @AuthChecker</span><br><span class="line">    public RpcResult&lt;List&lt;YunKaiUserModel&gt;&gt; notNeedCheckAuth()&#123;</span><br><span class="line">        return yunKaiUserService.findAll();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果权限合法，则可以加载返回用户的信息列表。@AuthChecker注释可以加在Controller方法上，同时也可以加载Service的方法，亲测正确。</p>
+<h4 id="方法耗时统计"><a href="#方法耗时统计" class="headerlink" title="方法耗时统计"></a>方法耗时统计</h4><p>问：为什么要进行方法耗时统计？<br>答：1、为服务中的每个方法调用进行调用耗时记录；2、有利于后期的监控、方法优化。</p>
+<p>同样借助于AOP</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">@Aspect</span><br><span class="line">@Component</span><br><span class="line">public class ControllerAspect &#123;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(DruidConfig.class);</span><br><span class="line"></span><br><span class="line">    @Pointcut(&quot;within(com.mybatis.service.impl.YunKaiUserServiceImpl)&quot;)</span><br><span class="line">    public void timeCount()&#123;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Around(&quot;timeCount()&quot;)</span><br><span class="line">    public Object timeCount(ProceedingJoinPoint jp)&#123;</span><br><span class="line">        try&#123;</span><br><span class="line">            StopWatch stopWatch = new StopWatch();</span><br><span class="line">            stopWatch.start();</span><br><span class="line">            Object retVal = jp.proceed();</span><br><span class="line">            stopWatch.stop();</span><br><span class="line">            logger.info(&quot; aop time count = &#123;&#125;&quot;, stopWatch.getTotalTimeMillis());</span><br><span class="line">            return retVal;</span><br><span class="line">        &#125; catch (Throwable e) &#123;</span><br><span class="line">            logger.info(&quot;aop time count error : &#123;&#125;&quot;, e);</span><br><span class="line">            return RpcResult.ofError(ErrorCode.BIZ_ERROR.getCode(), ErrorCode.BIZ_ERROR.getMsg(&quot;统计调用耗时错误&quot;));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Pointcut(“within(com.mybatis.service.impl.YunKaiUserServiceImpl)”)切入点的定义，将对YunKaiUserServiceImpl内的所有方法进行方法耗时统计。<br>借助于@Around通知和StopWatch类，在方法执行过程中，会记录方法的执行时间。<br><img src="http://obbgpy87z.bkt.clouddn.com/blog_aop_time_count.png" alt="aop"></p>
+<p>大🐮：不错不错，继续努力。<br>云开：我会的。</p>
+<p>附<a href="https://github.com/JiongJiongGe/BlogAop" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇中介绍了AOP在HTTP接口鉴权和方法耗时统计的应用，希望对大家有所帮助。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。</p>
+<p>LINKS：<br><a href="https://juejin.im/user/59e614636fb9a044ff308a05" target="_blank" rel="noopener">云开的掘金地址</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/08/yunkai_aop_application/" data-id="cjevgl2tf0003qibr9cvwyffp" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aop/">aop</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/01/25/yunkai_distributed/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          服务间调用，保证数据的正确性
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/01/yunkai_aop/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Spring之AOP介绍</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

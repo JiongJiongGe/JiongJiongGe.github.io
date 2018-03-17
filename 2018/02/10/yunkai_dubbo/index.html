@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Dubbo 服务提供方、消费方 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="应用场景在实际的软件开发中，随着业务的逐步增长，软件对应的服务应用也会逐渐增多，应用之间交互不可避免，这时如果条件允许，则需要将不同的功能模块单独抽取出来，作为独立的服务，部署，并向外提供对应可用的接口。服务间调用，保证数据的正确性中介绍了Hessian的RPC远程服务调用方式，并考虑了服务的正确性，在此篇中则介绍一种RPC框架——Dubbo。">
+<meta name="keywords" content="Dubbo,Zookeeper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dubbo 服务提供方、消费方">
+<meta property="og:url" content="http://yoursite.com/2018/02/10/yunkai_dubbo/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="应用场景在实际的软件开发中，随着业务的逐步增长，软件对应的服务应用也会逐渐增多，应用之间交互不可避免，这时如果条件允许，则需要将不同的功能模块单独抽取出来，作为独立的服务，部署，并向外提供对应可用的接口。服务间调用，保证数据的正确性中介绍了Hessian的RPC远程服务调用方式，并考虑了服务的正确性，在此篇中则介绍一种RPC框架——Dubbo。">
+<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_dubbo_intro.jpg">
+<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_dubbo_structure.png">
+<meta property="og:updated_time" content="2018-03-17T14:18:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dubbo 服务提供方、消费方">
+<meta name="twitter:description" content="应用场景在实际的软件开发中，随着业务的逐步增长，软件对应的服务应用也会逐渐增多，应用之间交互不可避免，这时如果条件允许，则需要将不同的功能模块单独抽取出来，作为独立的服务，部署，并向外提供对应可用的接口。服务间调用，保证数据的正确性中介绍了Hessian的RPC远程服务调用方式，并考虑了服务的正确性，在此篇中则介绍一种RPC框架——Dubbo。">
+<meta name="twitter:image" content="http://obbgpy87z.bkt.clouddn.com/blog_dubbo_intro.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_dubbo" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/10/yunkai_dubbo/" class="article-date">
+  <time datetime="2018-02-09T23:35:20.000Z" itemprop="datePublished">2018-02-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Dubbo 服务提供方、消费方
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的软件开发中，随着业务的逐步增长，软件对应的服务应用也会逐渐增多，应用之间交互不可避免，这时如果条件允许，则需要将不同的功能模块单独抽取出来，作为独立的服务，部署，并向外提供对应可用的接口。<br><a href="https://jiongjiongge.github.io/2018/01/25/yunkai_distributed/#more" target="_blank" rel="noopener">服务间调用，保证数据的正确性</a>中介绍了Hessian的RPC远程服务调用方式，并考虑了服务的正确性，在此篇中则介绍一种RPC框架——Dubbo。<br><a id="more"></a></p>
+<h2 id="Dubbo介绍"><a href="#Dubbo介绍" class="headerlink" title="Dubbo介绍"></a>Dubbo介绍</h2><p>Dubbo是由阿里巴巴开源的基于Java的高性能RPC框架。和许多RPC系统一样，dubbo基于定义一个服务的思想，指定可以通过参数和返回类型远程调用的方法。在服务器端，服务器实现此接口并运行一个dubbo服务器来处理客户端调用。在客户端，会存在一个存根，提供与服务器接口相同方法名的方法。</p>
+<h2 id="Dubbo体系结构"><a href="#Dubbo体系结构" class="headerlink" title="Dubbo体系结构"></a>Dubbo体系结构</h2><p><img src="http://obbgpy87z.bkt.clouddn.com/blog_dubbo_intro.jpg" alt="Dubbo体系结构"><br>结构说明：<br>Provider : 暴露服务的服务提供者。<br>Consumer : 调用远程服务的服务消费者。<br>Register : 服务注册与发现的注册中心，此篇中将使用Zookeeper(分布式应用程序协调服务)。<br>Monitor : 统计服务的调用次数和调用时间的监控中心。<br>Container : 服务运行容器。</p>
+<p>结构功能说明：<br>1、服务容器负责启动，加载，运行服务提供者。<br>2、服务提供者在启动时，向注册中心注册自己能提供的服务。<br>3、服务消费者在启动时，向注册中心订阅自己所需要的服务。<br>4、注册中心返回服务提供者地址列表给消费者，若有变更，注册中心基于长连接推送变更数据给消费者。<br>5、服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果失败，会调用另一台。(前提是此服务提供者有多台服务容器启动)<br>6、服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p><strong>首先介绍下，本篇中的项目工程。</strong><br><img src="http://obbgpy87z.bkt.clouddn.com/blog_dubbo_structure.png" alt="项目结构"><br>工程说明：<br>1、mybatis_dubbo工程为父级工程，在此工程可以添加子服务模块公共的Maven依赖。<br>2、user_provider、nate 相同服务的两个提供者，此篇中借助zk提供软负载均衡。<br>3、consumer 服务消费者。<br>4、api工程，以jar形式引入user_provider和consumer工程，作为提供者和消费者之间的联系，即上述Dubbo介绍中，提到的在客户端的存根。</p>
+<h3 id="一、mybatis-dubbo"><a href="#一、mybatis-dubbo" class="headerlink" title="一、mybatis_dubbo"></a>一、mybatis_dubbo</h3><p><strong>添加dubbo和zk所需的依赖</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;com.alibaba&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;dubbo&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;2.5.3&lt;/version&gt;</span><br><span class="line">	&lt;exclusions&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;artifactId&gt;spring&lt;/artifactId&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">		&lt;/exclusion&gt;</span><br><span class="line">	&lt;/exclusions&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;!--dubbo使用zk作为内部服务注册与发现--&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;zookeeper&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;3.4.6&lt;/version&gt;</span><br><span class="line">	&lt;exclusions&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;</span><br><span class="line">	     	&lt;/exclusion&gt;</span><br><span class="line">			&lt;exclusion&gt;</span><br><span class="line">				&lt;groupId&gt;log4j&lt;/groupId&gt;</span><br><span class="line">				&lt;artifactId&gt;log4j&lt;/artifactId&gt;</span><br><span class="line">			&lt;/exclusion&gt;</span><br><span class="line">		&lt;/exclusions&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;!--zk客户端实现--&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;com.101tec&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;zkclient&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;0.7&lt;/version&gt;</span><br><span class="line">	&lt;exclusions&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;artifactId&gt;spring&lt;/artifactId&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">		&lt;/exclusion&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;groupId&gt;org.slf4j&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;</span><br><span class="line">		&lt;/exclusion&gt;</span><br><span class="line">		&lt;exclusion&gt;</span><br><span class="line">			&lt;groupId&gt;log4j&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;log4j&lt;/artifactId&gt;</span><br><span class="line">		&lt;/exclusion&gt;</span><br><span class="line">	&lt;/exclusions&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="二、api工程"><a href="#二、api工程" class="headerlink" title="二、api工程"></a>二、api工程</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public interface APIUserService &#123;</span><br><span class="line">    /**</span><br><span class="line">     * 获取用户列表</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public RpcResult&lt;List&lt;UserDto&gt;&gt; findList();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>api工程以jar的形式，被引入提供者和消费者工程中，APIUserService作为提供者暴露给消费者的接口，同时也作为消费者调用服务提供者方法的入口(存根)。</p>
+<h3 id="三、user-provider工程"><a href="#三、user-provider工程" class="headerlink" title="三、user_provider工程"></a>三、user_provider工程</h3><p><strong>首先配置服务注册文件user.dubbo.xml</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</span><br><span class="line">       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:dubbo=&quot;http://code.alibabatech.com/schema/dubbo&quot;</span><br><span class="line">       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;dubbo:application name = &quot;dubbo-provider-user&quot; /&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 服务注册地址，借助zookeeper --&gt;</span><br><span class="line">    &lt;dubbo:registry id=&quot;zookeeper&quot; protocol=&quot;zookeeper&quot; address=&quot;192.168.6.24:2181&quot; /&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- dubbo协议端口 --&gt;</span><br><span class="line">    &lt;dubbo:protocol name=&quot;dubbo&quot; port=&quot;20887&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 声明需要暴露的服务接口 --&gt;</span><br><span class="line">    &lt;dubbo:service interface=&quot;com.api.service.APIUserService&quot; ref=&quot;aPIUserService&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;bean id=&quot;aPIUserService&quot; class=&quot;com.provider.api.APIUserServiceImpl&quot; /&gt;</span><br><span class="line"></span><br><span class="line">&lt;/beans&gt;</span><br></pre></td></tr></table></figure>
+<p>说明：<br>1、dubbo:application 声明服务提供者名称<br>2、dubbo:registry 借助zk，注册服务地址<br>3、dubbo:service 声明需要暴露的服务接口，此interface为api工程中的service接口。<br>4、 <bean id="aPIUserService" class="com.provider.api.APIUserServiceImpl">则是指定接口对应的实现类，此实现类是在user_provider中实现。</bean></p>
+<p><strong>在项目的启动文件中，引入user.dubbo.xml文件</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">@ImportResource(&#123;&quot;classpath:user.dubbo.xml&quot;&#125;)</span><br><span class="line">public class ProviderApplication &#123;</span><br><span class="line"></span><br><span class="line">	public static void main(String[] args) &#123;</span><br><span class="line">		SpringApplication.run(ProviderApplication.class, args);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过@ImportResource注解引入user.dubbo.xml文件</p>
+<p><strong>服务具体实现类</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Service(&quot;aPIUserService&quot;)</span><br><span class="line">public class APIUserServiceImpl implements APIUserService &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private UserService userService;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 获取用户列表</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public RpcResult&lt;List&lt;UserDto&gt;&gt; findList() &#123;</span><br><span class="line">        return userService.findList();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>说明：<br>APIUserServiceImpl作为user_provider工程对外暴露服务接口的实现类，UserService则是服务提供者内部实现业务对应的service。</p>
+<p><strong>完成了user_provider，则完成了服务提供者向zk(服务中心)注册对应服务的功能。</strong></p>
+<h3 id="四、nate工程"><a href="#四、nate工程" class="headerlink" title="四、nate工程"></a>四、nate工程</h3><p>nate工程与user_provider工程相同(除项目的请求端口不一致外)，作为软负载均衡的作用存在，当user_provider超过负载后，对消费者提供服务。</p>
+<h3 id="五、consumer工程"><a href="#五、consumer工程" class="headerlink" title="五、consumer工程"></a>五、consumer工程</h3><p><strong>配置消费者向注册中心订阅服务的功能，配置user.dubbo.xml文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;</span><br><span class="line">       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:dubbo=&quot;http://code.alibabatech.com/schema/dubbo&quot;</span><br><span class="line">       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd&quot;&gt;</span><br><span class="line"></span><br><span class="line">    &lt;dubbo:application name = &quot;dubbo-consume-user&quot; /&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 服务订阅地址，借助zookeeper --&gt;</span><br><span class="line">    &lt;dubbo:registry protocol=&quot;zookeeper&quot; address=&quot;192.168.6.24:2181&quot; /&gt;</span><br><span class="line"></span><br><span class="line">    &lt;dubbo:reference id=&quot;aPIUserService&quot; check=&quot;false&quot; interface=&quot;com.api.service.APIUserService&quot; timeout=&quot;1200000&quot;/&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 消费者配置 --&gt;</span><br><span class="line">    &lt;dubbo:consumer   check=&quot;false&quot;/&gt;</span><br><span class="line">    </span><br><span class="line">&lt;/beans&gt;</span><br></pre></td></tr></table></figure>
+<p>说明：<br>1、dubbo:application 声明服务消费者名称<br>2、dubbo:registry 借助zk，订阅服务地址<br>3、dubbo:reference 生成远程服务代理，达到与本地bean一样使用的效果，订阅注册中心的aPIUserService接口。<br>4、dubbo:consumer 关闭所有服务的启动时检查</p>
+<p><strong>在项目的启动文件中，引入user.dubbo.xml文件</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">@ImportResource(&#123;&quot;classpath:user.dubbo.xml&quot;&#125;)</span><br><span class="line">public class ConsumerApplication &#123;</span><br><span class="line"></span><br><span class="line">	public static void main(String[] args) &#123;</span><br><span class="line">		SpringApplication.run(ConsumerApplication.class, args);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>通过@ImportResource注解引入user.dubbo.xml文件</p>
+<p><strong>使用aPIUserService调用服务提供者提供的服务</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;test&quot;)</span><br><span class="line">public class TestController &#123;</span><br><span class="line"></span><br><span class="line">    @Reference</span><br><span class="line">    @Autowired</span><br><span class="line">    private APIUserService aPIUserService;</span><br><span class="line"></span><br><span class="line">    @RequestMapping(value = &quot;/test&quot;)</span><br><span class="line">    public RpcResult test()&#123;</span><br><span class="line">        return aPIUserService.findList();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用consumer工程，请求地址localhost:9000/test/test，便可以看到消费者调用服务提供者后返回的数据。<br>同时大家可以尝试关闭user_provider和nate中任意一个工程，发现服务的提供并没有因此失败，这也是zk服务给我们提供的便利之处。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Dubbo工程适用范围还是比较广泛的，小🐳在此篇中只是介绍了基本的用法，后续还是需跟着阿里的github去深入继续学习。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。大家，下次见。</p>
+<p>附<a href="https://github.com/JiongJiongGe/Dubbo" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<p>LINKS：<br><a href="http://dubbo.io/" target="_blank" rel="noopener">Dubbo介绍</a><br><a href="https://github.com/alibaba/dubbo/" target="_blank" rel="noopener">Dubbo github地址</a><br><a href="http://blog.csdn.net/u012385190/article/details/52785520?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" target="_blank" rel="noopener">其他童鞋的理解</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/10/yunkai_dubbo/" data-id="cjevgl2ti0005qibrtnzqp1r9" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/03/17/yunkai_executor_future/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          借助于线程池的Executor框架+Future 实现并发编程
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/25/yunkai_distributed/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">服务间调用，保证数据的正确性</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

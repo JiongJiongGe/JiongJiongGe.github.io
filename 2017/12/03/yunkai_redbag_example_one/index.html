@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>抢红包实现方案 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开篇好久不见，甚是想念 概念redis是一个开源的、内存存储的数据结构服务器，可用作数据库、高速缓存和消息队列代理。它支持字符串、哈希表、列表、集合、有序集合等数据类型。jedis则集成了redis的一些命令操作，封装了redis的java客户端，并提供了连接池管理，可以操作redis数据库。 应用场景之所以说redis是内存数据库，是因为redis基于内存的读取和写入，相比传统的数据库基于磁盘I">
+<meta name="keywords" content="redis,jedis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="抢红包实现方案">
+<meta property="og:url" content="http://yoursite.com/2017/12/03/yunkai_redbag_example_one/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="开篇好久不见，甚是想念 概念redis是一个开源的、内存存储的数据结构服务器，可用作数据库、高速缓存和消息队列代理。它支持字符串、哈希表、列表、集合、有序集合等数据类型。jedis则集成了redis的一些命令操作，封装了redis的java客户端，并提供了连接池管理，可以操作redis数据库。 应用场景之所以说redis是内存数据库，是因为redis基于内存的读取和写入，相比传统的数据库基于磁盘I">
+<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_redis_redbag.png">
+<meta property="og:updated_time" content="2018-03-17T14:18:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="抢红包实现方案">
+<meta name="twitter:description" content="开篇好久不见，甚是想念 概念redis是一个开源的、内存存储的数据结构服务器，可用作数据库、高速缓存和消息队列代理。它支持字符串、哈希表、列表、集合、有序集合等数据类型。jedis则集成了redis的一些命令操作，封装了redis的java客户端，并提供了连接池管理，可以操作redis数据库。 应用场景之所以说redis是内存数据库，是因为redis基于内存的读取和写入，相比传统的数据库基于磁盘I">
+<meta name="twitter:image" content="http://obbgpy87z.bkt.clouddn.com/blog_redis_redbag.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_redbag_example_one" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/03/yunkai_redbag_example_one/" class="article-date">
+  <time datetime="2017-12-03T03:53:10.000Z" itemprop="datePublished">2017-12-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      抢红包实现方案
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开篇"><a href="#开篇" class="headerlink" title="开篇"></a>开篇</h2><p>好久不见，甚是想念</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>redis是一个开源的、内存存储的数据结构服务器，可用作数据库、高速缓存和消息队列代理。它支持字符串、哈希表、列表、集合、有序集合等数据类型。<br>jedis则集成了redis的一些命令操作，封装了redis的java客户端，并提供了连接池管理，可以操作redis数据库。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>之所以说redis是内存数据库，是因为redis基于内存的读取和写入，相比传统的数据库基于磁盘IO快上数倍。于是乎redis在现在的应用中使用非常广泛，例如：<br>1、提供缓存服务，存储访问频率高的热数据防止穿透数据库；<a id="more"></a><br>2、在分布式系统中可作为实现分布式锁的实现方案；<br>3、由于redis内部实现是单线程，redis也可以支持解决并发的问题;<br>… etc.</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>在本篇中，抢红包的实现主要借助了redis内部是单线程实现的特征，并通过jedis实现列表存取。</p>
+<h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131<br>MAVEN apache-maven-3.5.0<br>redis 4.0.1</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis、redis</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><p>一、新建SpringBoot项目,并加入redis依赖：<br>redis 依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<p>二、redis和jedis连接池配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">package com.mybatis.config;</span><br><span class="line"></span><br><span class="line">import org.apache.log4j.Logger;</span><br><span class="line">import org.springframework.boot.autoconfigure.EnableAutoConfiguration;</span><br><span class="line">import org.springframework.context.annotation.Bean;</span><br><span class="line">import org.springframework.context.annotation.Configuration;</span><br><span class="line">import redis.clients.jedis.JedisPool;</span><br><span class="line">import redis.clients.jedis.JedisPoolConfig;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * Created by yunkai on 2017/11/26.</span><br><span class="line"> */</span><br><span class="line">@Configuration</span><br><span class="line">@EnableAutoConfiguration</span><br><span class="line">public class RedisConfig &#123;</span><br><span class="line"></span><br><span class="line">    private static Logger logger = Logger.getLogger(RedisConfig.class);</span><br><span class="line"></span><br><span class="line">    private String hostName = &quot;127.0.0.1&quot;;</span><br><span class="line"></span><br><span class="line">    private int port = 6379;</span><br><span class="line"></span><br><span class="line">    private String password;</span><br><span class="line"></span><br><span class="line">    private int timeout;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public JedisPoolConfig getRedisConfig()&#123;</span><br><span class="line">        JedisPoolConfig config = new JedisPoolConfig();</span><br><span class="line">        return config;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public JedisPool getJedisPool()&#123;</span><br><span class="line">        JedisPoolConfig config = getRedisConfig();</span><br><span class="line">        config.setMaxIdle(200);</span><br><span class="line">        config.setMaxTotal(200);</span><br><span class="line">        JedisPool pool = new JedisPool(config,hostName,port,timeout,password);</span><br><span class="line">        logger.info(&quot;init JredisPool ...&quot;);</span><br><span class="line">        return pool;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>说明：<br>(1)、hostName、port、password、timeout分别为redis的主机名、端口、密码以及超市时间，大家可以根据自己安装的redis服务填写。<br>(2)、config.setMaxIdle(200)表示redis最大空闲连接数； config.setMaxTotal(200);表示最大连接数，此参数建议大家开启，小🐳深有体会，当我未设置该属性时，jedis在lpush(往redis数据库列表参数push值)时，不能将预期的所有值都存入列表中。</p>
+<p>三、jedis对redis的操作方法、lpush(将值放入列表中)和lpop(移除并返回列表的第一个元素。)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">private final static Logger logger = LoggerFactory.getLogger(RedisServiceImpl.class);</span><br><span class="line"></span><br><span class="line">   @Autowired</span><br><span class="line">   private JedisPool jedisPool;</span><br><span class="line"></span><br><span class="line">   private Jedis getResource() &#123;</span><br><span class="line">       return jedisPool.getResource();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public Long lpush(String key, String value)&#123;</span><br><span class="line">    Long result = (long)0;</span><br><span class="line">    try&#123;</span><br><span class="line">        result = getResource().lpush(key, value);</span><br><span class="line">        logger.info(&quot;result = &#123;&#125;&quot;, result);</span><br><span class="line">    &#125;catch (Exception e)&#123;</span><br><span class="line">        logger.error(&quot; error = &#123;&#125;&quot;, e);</span><br><span class="line">    &#125;finally &#123;</span><br><span class="line">        //释放Jedis对象</span><br><span class="line">        jedisPool.returnBrokenResource(getResource());</span><br><span class="line">        //返还到连接池</span><br><span class="line">        jedisPool.returnResource(getResource());</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public String lpop(String key)&#123;</span><br><span class="line">    String value = &quot;&quot;;</span><br><span class="line">    try&#123;</span><br><span class="line">        value = getResource().lpop(key);</span><br><span class="line">        logger.info(&quot; value = &#123;&#125;&quot;, value);</span><br><span class="line">    &#125;catch (Exception e)&#123;</span><br><span class="line">        logger.error(&quot; error = &#123;&#125; &quot;, e);</span><br><span class="line">    &#125;finally &#123;</span><br><span class="line">        //释放Jedis对象</span><br><span class="line">        jedisPool.returnBrokenResource(getResource());</span><br><span class="line">        //返还到连接池</span><br><span class="line">        jedisPool.returnResource(getResource());</span><br><span class="line">    &#125;</span><br><span class="line">    return value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>四、构建RedBagPackModel红包对象、RedBagPackDetailModel红包明细对象，以及对应的Dao层和Service层方法。<br>(1)、RedBagPackModel对象<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class RedBagPackModel implements Serializable&#123;</span><br><span class="line"></span><br><span class="line">    private Integer id;</span><br><span class="line"></span><br><span class="line">    private Double money;   //红包总金额</span><br><span class="line"></span><br><span class="line">    private Integer num;   //红包数量</span><br><span class="line"></span><br><span class="line">    private Integer userId;  //发红包用户Id</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>(2)、RedBagPackDetailModel对象<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class RedBagPackDetailModel implements Serializable&#123;</span><br><span class="line"></span><br><span class="line">    private Integer id;</span><br><span class="line"></span><br><span class="line">    private Integer packId;  //红包Id</span><br><span class="line"></span><br><span class="line">    private Integer userId;  //领取用户Id</span><br><span class="line"></span><br><span class="line">    private Double money;  //红包金额</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>五、发红包／领取红包时对db和redis的相关操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">  * 生成发红包记录</span><br><span class="line">  *</span><br><span class="line">  * @param pack</span><br><span class="line">  */</span><br><span class="line"> @Override</span><br><span class="line"> public void create(RedBagPackModel pack)&#123;</span><br><span class="line">     redBagPackMapper.create(pack);</span><br><span class="line">     //红包Id</span><br><span class="line">     int packId = redBagPackMapper.last_insert_id();</span><br><span class="line">     //生成红包明细</span><br><span class="line">     double[] bags = RandomCreateRedUtil.setRedBag(pack.getMoney(), pack.getNum());</span><br><span class="line">     logger.info(&quot;bags = &#123;&#125;&quot;, new Gson().toJson(bags));</span><br><span class="line">     if(bags != null &amp;&amp; bags.length &gt; 0)&#123;</span><br><span class="line">         for(int i = 0; i &lt; bags.length; i++) &#123;</span><br><span class="line">             RedBagPackDetailModel packDetail = new RedBagPackDetailModel();</span><br><span class="line">             packDetail.setMoney(bags[i]);</span><br><span class="line">             packDetail.setPackId(packId);</span><br><span class="line">             redBagPackDetailService.create(packDetail);</span><br><span class="line">             logger.info(&quot;packId = &#123;&#125;&quot;, packId);</span><br><span class="line">             jedisService.lpush(packId + &quot;&quot;, bags[i] + &quot;&quot;);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>1、对db的操作：<br>(1)、保存红包发送记录，记录发红包的用户、此处红包个数以及红包对应的总金额<br>(2)、根据红包个数和红包总金额，根据红包算法，生成，并将生成后的数据放入packDetail对象中，然后再保存在红包明细的表中。<br>2、对redis的操作：<br>通过lpush方法将红包明细的数组数据加入到key值为packId(红包Id)的列表中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">  * 用户领取红包，保存数据</span><br><span class="line">  *</span><br><span class="line">  * @param packId  红包Id</span><br><span class="line">  * @param userId  用户Id</span><br><span class="line">  */</span><br><span class="line"> @Override</span><br><span class="line"> @Transactional</span><br><span class="line"> public String getBag(Integer packId, Integer userId)&#123;</span><br><span class="line">     String value = jedisService.lpop(packId + &quot;&quot;);</span><br><span class="line">     logger.info(&quot;value = &#123;&#125;&quot;, value);</span><br><span class="line">     if(StringUtils.isEmpty(value))&#123;</span><br><span class="line">         logger.info(&quot;红包已领完&quot;);</span><br><span class="line">         return &quot;红包已领完&quot;;</span><br><span class="line">     &#125;</span><br><span class="line">     RedBagPackDetailModel detail = redBagPackDetailMapper.queryByMoney(Double.parseDouble(value), packId);</span><br><span class="line">     //保存记录</span><br><span class="line">     redBagPackDetailMapper.updateUserId(detail.getId(), userId);</span><br><span class="line">     return value;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>1、对db的操作：<br>若红包未领完，将用户Id保存入红包明细对应的数据中，表示该已被用户领取。<br>2、对redis的操作：<br>调用lpop方法，获取在redis数据库中红包Id对应的列表的第一个值，如果值为空，则表示该红包已领完。</p>
+<p>六、模拟用户发红包和领取红包动作<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">package com.mybatis.controller;</span><br><span class="line"></span><br><span class="line">import com.mybatis.domain.redbag.RedBagPackDetailModel;</span><br><span class="line">import com.mybatis.domain.redbag.RedBagPackModel;</span><br><span class="line">import com.mybatis.service.redbag.RedBagPackDetailServiceI;</span><br><span class="line">import com.mybatis.service.redbag.RedBagPackServiceI;</span><br><span class="line">import com.mybatis.util.RandomCreateRedUtil;</span><br><span class="line">import org.slf4j.Logger;</span><br><span class="line">import org.slf4j.LoggerFactory;</span><br><span class="line">import org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line">import org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line">import org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line">import org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line">import java.util.Random;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 红包相关</span><br><span class="line"> *</span><br><span class="line"> * Created by yunkai on 2017/11/30.</span><br><span class="line"> */</span><br><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/redbag&quot;)</span><br><span class="line">public class RedBagController &#123;</span><br><span class="line"></span><br><span class="line">    private static Logger logger = LoggerFactory.getLogger(RedBagController.class);</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedBagPackServiceI redBagPackService;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedBagPackDetailServiceI redBagPackDetailService;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 设置红包</span><br><span class="line">     *</span><br><span class="line">     * @param money  红包总金额</span><br><span class="line">     * @param num   红包数</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    @GetMapping(value = &quot;/set&quot;)</span><br><span class="line">    public String setRedBag(Double money, Integer num)&#123;</span><br><span class="line">        RedBagPackModel pack = new RedBagPackModel();</span><br><span class="line">        pack.setMoney(money);</span><br><span class="line">        pack.setNum(num);</span><br><span class="line">        pack.setUserId(1);</span><br><span class="line">        redBagPackService.create(pack);</span><br><span class="line">        return &quot;set red bag ... &quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 领红包</span><br><span class="line">     *</span><br><span class="line">     * @param packId  红包Id</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    @GetMapping(value = &quot;/pick/bag&quot;)</span><br><span class="line">    public String pickBag(Integer packId)&#123;</span><br><span class="line">        Integer userId = new Random().nextInt(100);</span><br><span class="line">        logger.info(&quot;userId = &#123;&#125;&quot;, userId);</span><br><span class="line">        redBagPackDetailService.getBag(packId, userId);</span><br><span class="line">        return &quot;pick bag ... &quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>设置红包和领取红包均对用户进行了数据模拟，userId模拟实际用户。</p>
+<p>六、测试<br>设置红包时，总共设置了10个红包，总金额为15元。<br>我采用的是ab测试，ab -n 11 -c 2 <a href="http://localhost:8911/redbag/pick/bag?packId=1" target="_blank" rel="noopener">http://localhost:8911/redbag/pick/bag?packId=1</a><br>并发请求领红包，前10个请求都能领到红包，第11个请求时，则会打印红包已领完的日志信息。<br><img src="http://obbgpy87z.bkt.clouddn.com/blog_redis_redbag.png" alt="blog_redis_redbag"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本篇中借助了redis本身的方法lpush和lpop操作数据列表，很简捷地实现了抢红包的逻辑，下篇中我将借助Reentrantlock重入锁以及mysql的update行锁为大家讲解实现减库存的方案。</p>
+<p>最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。<br>附<a href="https://github.com/JiongJiongGe/BlogRedisQueue" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/12/03/yunkai_redbag_example_one/" data-id="cjevgl2tr000fqibrnl4mj3nz" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jedis/">jedis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/redis/">redis</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/12/23/yunkai_thread_executor/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          群发消息多线程的应用
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/29/yunkai_singleton/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">单例避免多线程同时修改同个值从而造成脏数据</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>单例避免多线程同时修改同个值从而造成脏数据 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概念单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。优点：&amp;nbsp;&amp;nbsp;&amp;nbsp;(1)、实例控制&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。&amp;nbsp;&amp;nbsp;&amp;nbsp;(2)、节约系统资源&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;">
+<meta name="keywords" content="singleton">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单例避免多线程同时修改同个值从而造成脏数据">
+<meta property="og:url" content="http://yoursite.com/2017/10/29/yunkai_singleton/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="概念单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。优点：&amp;nbsp;&amp;nbsp;&amp;nbsp;(1)、实例控制&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。&amp;nbsp;&amp;nbsp;&amp;nbsp;(2)、节约系统资源&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;">
+<meta property="og:updated_time" content="2018-03-17T14:18:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="单例避免多线程同时修改同个值从而造成脏数据">
+<meta name="twitter:description" content="概念单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。优点：&amp;nbsp;&amp;nbsp;&amp;nbsp;(1)、实例控制&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。&amp;nbsp;&amp;nbsp;&amp;nbsp;(2)、节约系统资源&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_singleton" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/29/yunkai_singleton/" class="article-date">
+  <time datetime="2017-10-29T05:44:10.000Z" itemprop="datePublished">2017-10-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      单例避免多线程同时修改同个值从而造成脏数据
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。<br>优点：<br>&nbsp;&nbsp;&nbsp;(1)、实例控制<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。<br>&nbsp;&nbsp;&nbsp;(2)、节约系统资源<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于系统内存中只存在一个对象，因此可以节约对象频繁创建和销毁。<a id="more"></a><br>缺点：<br>&nbsp;&nbsp;&nbsp;(1)、滥用带来的问题<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;若单例对象长时间不被利用，系统会认为是垃圾而回收，从而导致对象状态的丢失。此外，如果为了节省资源将数据库连接池对象设计为单例，可能会导致共享连接池对象的程序过多而出现连接池溢出。<br>&nbsp;&nbsp;&nbsp;(2)、扩展性较差<br>由于单例模式中没有抽象层，因此扩展有很大的困难。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>开发过微信公众号的同学应该都接触过微信的AccessToken，正常情况下AccessToken有效期为7200秒，在有效期内重复获取返回相同结果。但是当AccessToken有效期达到临界点时，会存在多个用户访问同个公众号时，同时去修改程序中公众号的AccessToken值，如果处理不当，则会存在AccessToken被多次修改，从而出现AccessToken的脏数据，导致前几次的用户访问出现对应的AccessToken被修改从而出现错误。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131、MAVEN apache-maven-3.5.0</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><p>一、新建SpringBoot项目,并加入redis依赖：<br>redis 依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;spring-boot-starter-data-redis&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<p>依赖说明：redis的引用，在本篇技术中是为了保证单例对象持久化，大家也可以采用直接把Java对象保存在文件中或者在DB中将对象保存起来的方法。出于解决当项目重启时，原先单例对象丢失数据的问题。</p>
+<p>二、构建大家的老朋友CalmWangUserModel用户对象，以及对应的Dao层和Service层方法。由于开发环境的约束，无法实现从微信换取AccessToken保存在单例对象中，故在开发环境中采用从DB中拿数据，以模拟完成上述操作。</p>
+<p>三、单例对象声明，并编写设置和获取对象属性<br>本篇中单例的实现是双重校验锁的形式，在JDK1.5之后，双重检查锁定才能够正常达到单例效果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public class UserSingleton &#123;</span><br><span class="line"></span><br><span class="line">    private static Logger logger = LoggerFactory.getLogger(UserSingleton.class);</span><br><span class="line"></span><br><span class="line">    private LinkedHashMap&lt;String, String&gt; linkMap;</span><br><span class="line"></span><br><span class="line">    private volatile static UserSingleton userSingleton;</span><br><span class="line"></span><br><span class="line">    private UserSingleton()&#123;&#125;</span><br><span class="line"></span><br><span class="line">    public LinkedHashMap&lt;String, String&gt; getLinkMap() &#123;</span><br><span class="line">        return linkMap;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setLinkMap(LinkedHashMap&lt;String, String&gt; linkMap) &#123;</span><br><span class="line">        this.linkMap = linkMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明：<br>(1)、当使用volatile声明的变量的值，系统总是重新从它所在的内存中读取数据，即使它前面的指令刚刚从该处读取过数据。<br>(2)、LinkedHashMap相对于HashMap的特点就是保存了记录的插入顺序。此处用linkMap是单例对象的一个属性，来保存用户名和联系方式的key，value形式，即模拟存储商家微信公众号的appID和AccessToken值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public static String getUserSingletonValue(String key)&#123;</span><br><span class="line">        if(userSingleton == null)&#123;</span><br><span class="line">            synchronized (UserSingleton.class)&#123;</span><br><span class="line">                if(userSingleton == null)&#123;</span><br><span class="line">                    userSingleton = new UserSingleton();</span><br><span class="line">                    LinkedHashMap&lt;String, String&gt; map = new LinkedHashMap&lt;String, String&gt;();</span><br><span class="line">                    userSingleton.setLinkMap(map);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        logger.info(&quot;userSingleton = &#123;&#125;&quot;, new Gson().toJson(userSingleton));</span><br><span class="line">        return userSingleton.getLinkMap().get(key);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明UserSingleton类方法：<br>(1)、使用synchronized(同步锁)，表示synchronized的代码在执行前必须首先获得UserSingleton类的锁方能执行，否则所属线程阻塞，方法一旦执行，就独占该锁，直到从该方法返回时才将锁释放，从而保证userSingleton为唯一实例。<br>(2)、此方法功能主要是通过key，来单例对象中获取对应的value值，如果对象不存在，则创建对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public static UserSingleton setUserSingleton(String key, String value)&#123;</span><br><span class="line">        synchronized (UserSingleton.class)&#123;</span><br><span class="line">            LinkedHashMap&lt;String, String&gt; map = userSingleton.getLinkMap();</span><br><span class="line">            if(StringUtils.isEmpty(map.get(key)))&#123;</span><br><span class="line">                map.put(key, value);</span><br><span class="line">                userSingleton.setLinkMap(map);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        logger.info(&quot;userSingleton = &#123;&#125;&quot;, new Gson().toJson(userSingleton));</span><br><span class="line">        return userSingleton;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明UserSingleton类方法：<br>synchronized的用法和作用如上，此方法用于将key和value值存入linkmap对象中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public static LinkedHashMap&lt;String, String&gt; getUserSingleton()&#123;</span><br><span class="line">        if(userSingleton == null)&#123;</span><br><span class="line">            synchronized (UserSingleton.class)&#123;</span><br><span class="line">                if(userSingleton == null)&#123;</span><br><span class="line">                    userSingleton = new UserSingleton();</span><br><span class="line">                    LinkedHashMap&lt;String, String&gt; map = new LinkedHashMap&lt;String, String&gt;();</span><br><span class="line">                    userSingleton.setLinkMap(map);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        logger.info(&quot;userSingleton = &#123;&#125;&quot;, new Gson().toJson(userSingleton));</span><br><span class="line">        return userSingleton.getLinkMap();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明UserSingleton类方法：<br>synchronized的用法和作用如上，此方法用户获取单例中linkmap对象。</p>
+<p>四、通过key值获取单例对象对应的value值<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@GetMapping(&quot;singleton&quot;)</span><br><span class="line">    public String singleton(String key)&#123;</span><br><span class="line">       String value = singleApplyService.retun(key);</span><br><span class="line">       logger.info(&quot;userName = &#123;&#125;&quot;, value);</span><br><span class="line">       return value;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码说明：<br>用户接受请求的控制器，调用service中的逻辑。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public String retun(String key)&#123;</span><br><span class="line">        //(1)</span><br><span class="line">        String value = UserSingleton.getUserSingletonValue(key);</span><br><span class="line">        if(StringUtils.isEmpty(value))&#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                logger.info(&quot;in = in&quot;);</span><br><span class="line">                //(2)</span><br><span class="line">                CalmWangUserModel user = calmWangUserService.getByPhone(key);</span><br><span class="line">                //(3)</span><br><span class="line">                UserSingleton.setUserSingleton(key, user.getUserName());</span><br><span class="line">                //(4)</span><br><span class="line">                LinkedHashMap&lt;String, String&gt; map = UserSingleton.getUserSingleton();</span><br><span class="line">                redisService.setKeyValue(&quot;all&quot;, map);</span><br><span class="line">                value = UserSingleton.getUserSingletonValue(key);</span><br><span class="line">            &#125;catch (Exception e)&#123;</span><br><span class="line">                logger.error(&quot;error = &#123;&#125;&quot;, e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return value;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明：<br>(1)、通过key值，从单例对象中获取对应的value值，如果不存在则会执行对应的逻辑，如果存在则将value值返回。<br>(2)、key对应的value值不存在，则从DB中获取对应的信息值，此处预模拟请求微信接口获取对应的AccessToken值。<br>(3)、将新获取的value值和key值一起保存入单例中。<br>(4)、为保证单例对象的持久化，故将单例中的linkmap属性值存入redis中，并会创建Bean，当Spring容器在启动时，去注入Bean,将redis中linkmap值存入单例中。(说到Spring容器启动只是一种比较常见单例对象销毁的情况，因为我们在发布项目版本时，这种情况出现的频率还是比较高的)</p>
+<p>五、redis持久化获取linkmap值<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class InitUserSingleton &#123;</span><br><span class="line"></span><br><span class="line">    private static Logger logger = LoggerFactory.getLogger(InitUserSingleton.class);</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedisServiceI redisService;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public UserSingleton init()&#123;</span><br><span class="line">        LinkedHashMap&lt;String, String&gt; map = redisService.getMapValue(&quot;all&quot;);</span><br><span class="line">        return UserSingleton.setUserSingletonMap(map);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>代码说明：<br>注入Bean，在Sping启动时，从redis中获取linkmap值，并将值传入单例中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public static UserSingleton setUserSingletonMap(LinkedHashMap&lt;String, String&gt; map)&#123;</span><br><span class="line">        if(userSingleton == null)&#123;</span><br><span class="line">            userSingleton = new UserSingleton();</span><br><span class="line">        &#125;</span><br><span class="line">        userSingleton.setLinkMap(map);</span><br><span class="line">        return userSingleton;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>代码说明：UserSingleton类方法<br>设置linkmap属性对应的值</p>
+<p>六、测试<br>我采用的是ab测试，ab -n 4 -c 1 <a href="http://localhost:8911/single/singleton?key=136。" target="_blank" rel="noopener">http://localhost:8911/single/singleton?key=136。</a><br>四个请求同时发送，查看单例执行情况，大家下载项目，然后运行代码，可以看到 logger.info(“in = in”);此处信息只打印了一次，由此可以得知除第一次请求外，剩余三次请求都拿到value，从而说明四个请求线程不会同时去操作单例对象，且保证了对象的更新。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>此方案适用于独立的微信公众号开发，当开发微信第三方平台时，如果用此方案存储多个商家的appID和对应的AccessToken时，则会出现线程阻塞等待的情况，原因是单例是独占的，在微信第三方平台环境下，当有多个用户同时进入多个微信公众号，由于单例的特性，会导致部分线程出现阻塞，无法第一时间获取到AccessToken，即使AccessToken存在于linkmap中。<br>此篇中还有几个问题待解决：<br>(1)、如何设置单例对象属性值linkmap中value值的过期，此篇开头就提到预解决的问题是微信AccessToken7200秒失效后，获取新的AccessToken，且保证只有单一线程去修改改值，而上述方案中，可以实现单一线程修改值，但未去判断value值是否过期。<br>(2)、此方案的实施，带来的性能问题，这个还有待研究。</p>
+<p>我会在后续的文章中，继续跟进上述提到的点。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。<br>附<a href="https://github.com/JiongJiongGe/BlogSingleton" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/29/yunkai_singleton/" data-id="cjevgl2tu000hqibr4kupml46" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/singleton/">singleton</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/12/03/yunkai_redbag_example_one/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          抢红包实现方案
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/13/yunkai_hessian/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Hessian远程调用服务实现</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

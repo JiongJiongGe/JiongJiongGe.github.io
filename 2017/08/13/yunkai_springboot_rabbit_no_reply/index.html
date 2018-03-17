@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>springboot实现rabbitmq消息队列_ACK自动确认机制 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="概念AMQP，即Advanced Message Queuing Protocol，是应用层标准高级消息队列协议，同时也是应用层协议的一个开发标准，为面向消息的中间件设计，主要作用于组件间的消息解耦，消息的发送者只需发送消息源而无需知道消息使用者的存在。RabbitMQ，基于Erlang语言编写，是一个开源的AMQP实现，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、">
+<meta name="keywords" content="springboot,rabbitmq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springboot实现rabbitmq消息队列_ACK自动确认机制">
+<meta property="og:url" content="http://yoursite.com/2017/08/13/yunkai_springboot_rabbit_no_reply/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="概念AMQP，即Advanced Message Queuing Protocol，是应用层标准高级消息队列协议，同时也是应用层协议的一个开发标准，为面向消息的中间件设计，主要作用于组件间的消息解耦，消息的发送者只需发送消息源而无需知道消息使用者的存在。RabbitMQ，基于Erlang语言编写，是一个开源的AMQP实现，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、">
+<meta property="og:updated_time" content="2018-03-17T14:18:29.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springboot实现rabbitmq消息队列_ACK自动确认机制">
+<meta name="twitter:description" content="概念AMQP，即Advanced Message Queuing Protocol，是应用层标准高级消息队列协议，同时也是应用层协议的一个开发标准，为面向消息的中间件设计，主要作用于组件间的消息解耦，消息的发送者只需发送消息源而无需知道消息使用者的存在。RabbitMQ，基于Erlang语言编写，是一个开源的AMQP实现，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_springboot_rabbit_no_reply" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/08/13/yunkai_springboot_rabbit_no_reply/" class="article-date">
+  <time datetime="2017-08-13T12:55:10.000Z" itemprop="datePublished">2017-08-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      springboot实现rabbitmq消息队列_ACK自动确认机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>AMQP，即Advanced Message Queuing Protocol，是应用层标准高级消息队列协议，同时也是应用层协议的一个开发标准，为面向消息的中间件设计，主要作用于组件间的消息解耦，消息的发送者只需发送消息源而无需知道消息使用者的存在。<br>RabbitMQ，基于Erlang语言编写，是一个开源的AMQP实现，支持多种客户端，如：Python、Ruby、.NET、Java、JMS、C、PHP、ActionScript、XMPP、STOMP等，支持AJAX。RabbitMQ中间件分为服务端和客户端，服务端可以理解为是消息的代理消费者，客户端有分为消息生产者和消息消费者。<a id="more"></a></p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><h3 id="异步处理"><a href="#异步处理" class="headerlink" title="异步处理"></a>异步处理</h3><p>例如：客户端请求服务端接口，接口实现的业务需求是根据用户的ID集合获取对应的用户列表，发送给对应的用户短信和邮件。实现的方式有两种：1、串行方式；2、并行方式。<br>(1)、串行方式：实现的思路是通过Ids集合获取到所有的用户信息，然后进行发送短信信息，再发送邮件，以上3个任务完成后返回给客户端。此时，会存在一个问题，短信和邮件可能只是通知，不是必须的，那么这样的做法就让客户端等待了没有必要等待的时间。<br>(2)、并行方式：通过IDs集合获取到用户信息后，在发送短信的同时，发送邮件，以上任务完成后，返回给客户端，并行的方式能够提高处理时间。同时，发送短信和邮件由于可能只是通知，不是必须的，那么到达用户端时，可以存在一定的延迟，程序在设计方面，可以借助rabbitMQ，直接把请求结果返回给客户端，而不在意短信和邮件是否发送成功，当然，这种不在意的方式是不严谨的，所以在程序上需考虑此种结果产生的问题。</p>
+<h3 id="应用、功能间的解耦"><a href="#应用、功能间的解耦" class="headerlink" title="应用、功能间的解耦"></a>应用、功能间的解耦</h3><p>例如：用户在淘宝购物时，用户进行下单，订单系统会通知库存系统，做对应的改变，常规的做法是订单系统调用库存系统，在这种方式下，如果库存系统发生故障，订单就会失败，那么对于商家、平台、用户都存在着不小的损失，因此，在这种情况下，可以使用rabbitMQ，订单系统负责把订单消息写入消息队列后，就返回下单成功的信息，那么就算库存信息出现问题，消息队列能保证消息的可靠传递，订单信息还是会保留。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131、MAVEN apache-maven-3.5.0</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="安装RabbitMQ"><a href="#安装RabbitMQ" class="headerlink" title="安装RabbitMQ"></a>安装RabbitMQ</h3><p>俗话说的好“欲善其事必利其器”，小🐳这边安装rabbitMQ使用的是mac常用命令brew进行安装，详细信息可以查看<a href="http://www.rabbitmq.com/install-standalone-mac.html" target="_blank" rel="noopener">官网安装地址</a>。</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><p>跃跃欲试的同学可以从接下来的几步完成rabbitMQ消息的生产、消费以及对消费结果的确认及补偿。<br>一、新建SpringBoot项目,并加入以下依赖：<br>mysql 依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;mysql&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;</span><br><span class="line">	&lt;version&gt;5.1.21&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<p>rabbitMQ 依赖<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;spring-boot-starter-amqp&lt;/artifactId&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure></p>
+<p>二、构建CalmWangUserModel用户对象和CalmWangLogModel日志对象两个domain对象，以及对应的Dao层和Service层方法。用户对象用来模拟发送请求的用户对象群体，日志对象用于存储rabbitMQ失败后的数据。</p>
+<p>三、rabbitMQ   ConnectionFactory配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class RabbitConfig &#123;</span><br><span class="line">    @Bean</span><br><span class="line">    public ConnectionFactory connectionFactory() &#123;</span><br><span class="line"></span><br><span class="line">        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();</span><br><span class="line">        connectionFactory.setAddresses(&quot;127.0.0.1&quot;);</span><br><span class="line">        connectionFactory.setPort(5672);</span><br><span class="line">        connectionFactory.setUsername(&quot;yunkai&quot;);</span><br><span class="line">        connectionFactory.setPassword(&quot;yunkai&quot;);</span><br><span class="line">        connectionFactory.setVirtualHost(&quot;/rabbit&quot;);</span><br><span class="line">        return connectionFactory;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>配置说明(根据自身安装rabbitMQ情况填写)<br>connectionFactory.setAddresses(“127.0.0.1”) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;设置服务器地址<br>connectionFactory.setPort(5672)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;设置端口号<br>connectionFactory.setUsername(“yunkai”)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;设置rabbitMQ用户名<br>connectionFactory.setPassword(“yunkai”)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;设置rabbitMQ用户名密码<br>connectionFactory.setVirtualHost(“/rabbit”)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;表示guest具有在“／rabbit”上的全部权限，即所有资源的配置、写、读权限。</p>
+<p>四、rabbitMQ中，所有生产者提交的信息都有Exchange来接受，然后Exchange按照特定的策略转发到Queue进行存储，rabbitMQ提供了四种Exchange：fanout，direct，topic，header。本次实例采用的是topic主题，Topic Exchange将路由键和模式进行匹配，即一个由生产者指定了确认Routing Key的消息会被推送给所有的Binding Key能与之匹配的消费者。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class TopicRabbitConfig &#123;</span><br><span class="line"></span><br><span class="line">    public final static String TOPIC_ONE = &quot;topic.one&quot;;</span><br><span class="line">    public final static String TOPIC_TWO = &quot;topic.two&quot;;</span><br><span class="line">    public final static String TOPIC_EXCHANGE = &quot;topicExchange&quot;;</span><br><span class="line"></span><br><span class="line">    (1)</span><br><span class="line">    @Bean</span><br><span class="line">    public Queue queue_one()&#123;</span><br><span class="line">        return new Queue(TOPIC_ONE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (1)</span><br><span class="line">    @Bean</span><br><span class="line">    public Queue queue_two()&#123;</span><br><span class="line">        return new Queue(TOPIC_TWO);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (2)</span><br><span class="line">    @Bean</span><br><span class="line">    TopicExchange exchange()&#123;</span><br><span class="line">        return new TopicExchange(TOPIC_EXCHANGE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (3)</span><br><span class="line">    @Bean</span><br><span class="line">    Binding bindingExchangeOne(Queue queue_one, TopicExchange exchange)&#123;</span><br><span class="line">        return BindingBuilder.bind(queue_one).to(exchange).with(&quot;topic.one&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (4)</span><br><span class="line">    @Bean</span><br><span class="line">    Binding bindingExchangeTwo(Queue queue_two, TopicExchange exchange)&#123;</span><br><span class="line">        //# 表示零个或多个词</span><br><span class="line">        //* 表示一个词</span><br><span class="line">        return BindingBuilder.bind(queue_two).to(exchange).with(&quot;topic.#&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>(1)队列配置，配置两个队列，分别命名为topic.one和topic.two<br>(2)、(3)、(4)对topic规则配置，使用queue_two匹配routingKey为“topic.#”的消息进入queue_two队列，’#’表示零个或者多个词，queue_one队列只匹配routingKey为“topic.message”的消息进入queue_one队列。</p>
+<p>五、消费者<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class Receiver &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private CalmWangUserServiceI calmWangUserService;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private CalmWangLogServiceI calmWangLogService;</span><br><span class="line"></span><br><span class="line">    (1)</span><br><span class="line">    @RabbitListener(queues = &quot;topic.one&quot;)</span><br><span class="line">    public void topicOneReceiver(String message)&#123;</span><br><span class="line">            System.out.println(&quot;one begin  message = === === == &quot; + message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    (2)</span><br><span class="line">    @RabbitListener(queues = &quot;topic.two&quot;)</span><br><span class="line">    public void topicTwoReceiver(Message message, List&lt;Short&gt; userIds) throws Exception&#123;</span><br><span class="line">        //message 消息内的信息，有body</span><br><span class="line">        String messageString = message.toString();</span><br><span class="line"></span><br><span class="line">        if(userIds != null &amp;&amp; userIds.size() &gt; 0)&#123;</span><br><span class="line">            userIds.forEach(id -&gt;&#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    CalmWangUserModel user = calmWangUserService.getById(id);</span><br><span class="line">                    user.setUser_name(user.getUser_name() + &quot;_NEW&quot;);</span><br><span class="line">                    //模拟出错情况，当user为空时，取user.getUser_name出错</span><br><span class="line">                    calmWangUserService.update(user);</span><br><span class="line">                &#125;catch (Exception e)&#123;</span><br><span class="line">                    CalmWangLogModel log = new CalmWangLogModel();</span><br><span class="line">                    log.setUser_id(id);</span><br><span class="line">                    calmWangLogService.saveLog(id);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>(1)接受处理进入topic.one队列的消息<br>(2)接受处理进入topic.two队列的消息，其中userIds集合是消息发送时传入，此处更新用户信息欲模拟给用户发送电子邮件和短信，并且会将循环过程中出错的数据保存到日志表中，保证消息处理的消息准确性。</p>
+<p>六、发送消息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;rabbit&quot;)</span><br><span class="line">public class RabbitMQController&#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RabbitTemplate rabbitTemplate;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private CalmWangUserServiceI calmWangUserService;</span><br><span class="line"></span><br><span class="line">    (1)</span><br><span class="line">    @GetMapping(value = &quot;send/simple/message&quot;)</span><br><span class="line">    public String send_one()&#123;</span><br><span class="line">        String context = &quot;Hi, I am message one&quot;;</span><br><span class="line">        System.out.println(&quot;Sender : &quot; + context);</span><br><span class="line">        //队列ID</span><br><span class="line">        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());</span><br><span class="line">        rabbitTemplate.convertAndSend(TopicRabbitConfig.TOPIC_EXCHANGE,&quot;topic.one&quot;,context, correlationData);</span><br><span class="line">        return &quot;success&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * rabbit模拟给用户发送消息</span><br><span class="line">     *</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    (2)</span><br><span class="line">    @GetMapping(value = &quot;send/message&quot;)</span><br><span class="line">    public String send_two()&#123;</span><br><span class="line">        List&lt;Short&gt; lists = new ArrayList&lt;Short&gt;();</span><br><span class="line">        //模拟给用户发送消息，此处用获取user name来模拟过程</span><br><span class="line">        for(Short i = 1; i &lt; 7; i++)&#123;</span><br><span class="line">            lists.add(i);</span><br><span class="line">        &#125;</span><br><span class="line">        CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());</span><br><span class="line">        rabbitTemplate.convertAndSend(TopicRabbitConfig.TOPIC_EXCHANGE, &quot;topic.two&quot;, lists , correlationData);</span><br><span class="line">        List&lt;CalmWangUserModel&gt; users = calmWangUserService.findUserList();</span><br><span class="line">        return &quot;success&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>(1)rabbitTemplate.convertAndSend(TopicRabbitConfig.TOPIC_EXCHANGE,“topic.one”,context, correlationData);  发送给名为TopicRabbitConfig.TOPIC_EXCHANGE的交互机，并且RoutingKey为“topic.one”的消息，此消息同时匹配queue_one和queue_two队列，但是消息只有一条，所以会被其中一个消费者消费。<br>(2)rabbitTemplate.convertAndSend(TopicRabbitConfig.TOPIC_EXCHANGE, “topic.two”, lists , correlationData);  发送给名为TopicRabbitConfig.TOPIC_EXCHANGE的交互机，并且RoutingKey为“topic.two”同时传递lists集合的消息，此消息只匹配queue_two队列，所以会被此消费者消费。<br>从上述结果得出的结论是：我们在传递消息时，对RoutingKey的填写需特别的注意。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>上述实例可以简单的实现rabbitMQ消息的发送、接受、处理，并利用日志记录出错的消息，后续可采取定时处理出错信息等操作，保证对消息的完整性。然后采用ACK自动确认机制，无法记录在未进入Exchange交换机的错误信息，所以小🐳准备在下篇文章中介绍下ACK手动确认机制。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。<br>附<a href="https://github.com/JiongJiongGe/BlogRabbitMQAutoReply" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<p>Links：<br><a href="http://blog.csdn.net/u010046908/article/details/54773323" target="_blank" rel="noopener">http://blog.csdn.net/u010046908/article/details/54773323</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/08/13/yunkai_springboot_rabbit_no_reply/" data-id="cjevgl2tx000kqibrsts15ypq" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/springboot/">springboot</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/08/26/yunkai_springboot_rabbit_handle_reply/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          springboot实现rabbitmq消息队列_ACK手动确认机制
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/07/24/welcome/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">welcome  奋斗</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

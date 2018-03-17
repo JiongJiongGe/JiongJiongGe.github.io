@@ -61,10 +61,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-yunkai_executor_future" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/03/15/hello-world/" class="article-date">
-  <time datetime="2018-03-15T14:18:09.000Z" itemprop="datePublished">2018-03-15</time>
+    <a href="/2018/03/17/yunkai_executor_future/" class="article-date">
+  <time datetime="2018-03-17T14:18:15.000Z" itemprop="datePublished">2018-03-17</time>
 </a>
     
   </div>
@@ -75,7 +75,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/15/hello-world/">Hello World</a>
+      <a class="article-title" href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
     </h1>
   
 
@@ -83,22 +83,416 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>关于线程方面，请教了公司的大🐮，大🐮给小🐳抛了一些点，小🐳听了后，感觉一时半会找不到大海的方向，最后大🐮让我先了解四个概念：同步、异步、阻塞以及非阻塞。接下来谈谈我对这四个概念的理解，如有不恰当的地方希望大家指正。<br><strong>线程同步</strong>：线程之间存在着相互依赖的关系，前一个线程的输出结果将作为后一个线程的输入，当前一个线程没有输出时，后一个线程必须等待，即由调用者主动等待这个调用的结果。
+        
+          <p class="article-more-link">
+            <a href="/2018/03/17/yunkai_executor_future/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/03/15/hello-world/" data-id="cjevggfjo0000pkbrui1hn5tg" class="article-share-link">Teilen</a>
+      <a data-url="http://yoursite.com/2018/03/17/yunkai_executor_future/" data-id="cjevgl2tm0009qibr4hco6y9i" class="article-share-link">Teilen</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Executor/">Executor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Future/">Future</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/springboot/">springboot</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/线程/">线程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_dubbo" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/10/yunkai_dubbo/" class="article-date">
+  <time datetime="2018-02-09T23:35:20.000Z" itemprop="datePublished">2018-02-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的软件开发中，随着业务的逐步增长，软件对应的服务应用也会逐渐增多，应用之间交互不可避免，这时如果条件允许，则需要将不同的功能模块单独抽取出来，作为独立的服务，部署，并向外提供对应可用的接口。<br><a href="https://jiongjiongge.github.io/2018/01/25/yunkai_distributed/#more" target="_blank" rel="noopener">服务间调用，保证数据的正确性</a>中介绍了Hessian的RPC远程服务调用方式，并考虑了服务的正确性，在此篇中则介绍一种RPC框架——Dubbo。<br>
+        
+          <p class="article-more-link">
+            <a href="/2018/02/10/yunkai_dubbo/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/10/yunkai_dubbo/" data-id="cjevgl2ti0005qibrtnzqp1r9" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_distributed" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/25/yunkai_distributed/" class="article-date">
+  <time datetime="2018-01-25T13:51:10.000Z" itemprop="datePublished">2018-01-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的开发中，我们往往会将一个大的系统划分为多个业务模块，这些模块可能部署在相同的机器上，也可能部署在不同的机器上，各个业务模块之间通过接口进行数据交互，通常接口间的访问通过RPC(远程过程调用)的方式。<br>但在实际场景中，调用者调用服务(以下称被调用者)的新增/修改数据接口成功后，返回到调用者，若在调用者后续业务逻辑中出现错误，必须将被调用者的数据回滚，从而保证数据的正确性。然而由于此流程并非在同一个事务中，故需增加额外的操作来保证，这就是此篇的由来。<br>
+        
+          <p class="article-more-link">
+            <a href="/2018/01/25/yunkai_distributed/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/25/yunkai_distributed/" data-id="cjevgl2th0004qibr6yrqi4vy" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_aop_application" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/08/yunkai_aop_application/" class="article-date">
+  <time datetime="2018-01-07T16:59:59.000Z" itemprop="datePublished">2018-01-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>在上篇中，已经介绍了AOP的基本名词和配置，同时也了解了AOP在打印日志信息的应用。云开为了履行对大🐮的承诺，继续调研AOP在其他场景下的应用，以下几点是调研结果，稍后会为童鞋们详细介绍：<br>1、HTTP接口鉴权；<br>2、方法耗时统计。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>云开：大🐮，我调研到了AOP还有以下两个应用场景：HTTP接口鉴权和方法耗时统计。<br>大🐮：好，那你给我介绍介绍。<br>云开：好的，那我一个个描述给你听。<br>
+        
+          <p class="article-more-link">
+            <a href="/2018/01/08/yunkai_aop_application/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/08/yunkai_aop_application/" data-id="cjevgl2tf0003qibr9cvwyffp" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aop/">aop</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_aop" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/01/yunkai_aop/" class="article-date">
+  <time datetime="2018-01-01T02:51:10.000Z" itemprop="datePublished">2018-01-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>AOP即Aspect Oriented Programming。它利用一种称为”横切”的技术，将那些影响多个类公众行为封装到一个可重用模块中，并将其称为“Aspect”，即切面。切面，简单说就是那些与业务无关，却将业务模块所公同调用的逻辑封装起来，便于减少系统的重复代码，降低模块间的耦合度，有利于之后的扩展和维护。</p>
+<p>AOP将程序系统代码模块分为两个部分：核心关注点和横切关注点。核心关注点主要与业务处理相关，而横切关注点经常发生在核心关注点的多处，比如日志的打印(日志打印Controller请求的接口地址、方式以及参数)。AOP的作用在于分离系统中的各种关注点，并将核心关注点和横切关注点分离开。<br>
+        
+          <p class="article-more-link">
+            <a href="/2018/01/01/yunkai_aop/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/01/yunkai_aop/" data-id="cjevgl2tb0001qibr7l4tby7z" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aop/">aop</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_thread_executor" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/23/yunkai_thread_executor/" class="article-date">
+  <time datetime="2017-12-23T02:51:10.000Z" itemprop="datePublished">2017-12-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/23/yunkai_thread_executor/">群发消息多线程的应用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>多线程使得程序内部可以分出多个线程来做多件事情，从而加快程序执行、处理速度。用多线程的目的主要是为了更好的利用CPU资源。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>大🐮：云开，我发现我们公司群发送券的执行效率还有提高的空间，有机会去改改？<br>云开：好呀好呀，我去看看。<br>云开：大🐮，我看了之前的代码，我觉得可以在群发这个动作上加上多线程，这样可以加快群发的执行，从而减少程序执行时间。<br>大🐮：好，那按你的想法去改进吧。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>在本篇中，我以给用户群发信息来模拟在我司改造群发送券的场景。<br>
+        
+          <p class="article-more-link">
+            <a href="/2017/12/23/yunkai_thread_executor/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/12/23/yunkai_thread_executor/" data-id="cjevgl2ty000mqibr1hbxembb" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_redbag_example_one" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/03/yunkai_redbag_example_one/" class="article-date">
+  <time datetime="2017-12-03T03:53:10.000Z" itemprop="datePublished">2017-12-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/03/yunkai_redbag_example_one/">抢红包实现方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开篇"><a href="#开篇" class="headerlink" title="开篇"></a>开篇</h2><p>好久不见，甚是想念</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>redis是一个开源的、内存存储的数据结构服务器，可用作数据库、高速缓存和消息队列代理。它支持字符串、哈希表、列表、集合、有序集合等数据类型。<br>jedis则集成了redis的一些命令操作，封装了redis的java客户端，并提供了连接池管理，可以操作redis数据库。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>之所以说redis是内存数据库，是因为redis基于内存的读取和写入，相比传统的数据库基于磁盘IO快上数倍。于是乎redis在现在的应用中使用非常广泛，例如：<br>1、提供缓存服务，存储访问频率高的热数据防止穿透数据库；
+        
+          <p class="article-more-link">
+            <a href="/2017/12/03/yunkai_redbag_example_one/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/12/03/yunkai_redbag_example_one/" data-id="cjevgl2tr000fqibrnl4mj3nz" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jedis/">jedis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/redis/">redis</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_singleton" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/29/yunkai_singleton/" class="article-date">
+  <time datetime="2017-10-29T05:44:10.000Z" itemprop="datePublished">2017-10-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/29/yunkai_singleton/">单例避免多线程同时修改同个值从而造成脏数据</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。<br>优点：<br>&nbsp;&nbsp;&nbsp;(1)、实例控制<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。<br>&nbsp;&nbsp;&nbsp;(2)、节约系统资源<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于系统内存中只存在一个对象，因此可以节约对象频繁创建和销毁。
+        
+          <p class="article-more-link">
+            <a href="/2017/10/29/yunkai_singleton/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/29/yunkai_singleton/" data-id="cjevgl2tu000hqibr4kupml46" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/singleton/">singleton</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_hessian" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/13/yunkai_hessian/" class="article-date">
+  <time datetime="2017-10-13T10:48:10.000Z" itemprop="datePublished">2017-10-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/13/yunkai_hessian/">Hessian远程调用服务实现</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>Hessian调用是基于HTTP的轻量级远程服务调用，提供了较轻量的方法实现了RMI(远程方法调用)的功能，与WebService相比，Hessian更简单、快捷。Hessian采用了二进制协议，因此它更适合于发送二进制数据。往简单了说，Hessian支持提供自定义API接口方法供工程间的远程调用。</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>举个例子来说，因业务需求需要，开发了A和B两个系统，基本上所有与用户相关的都在A系统中，其中就有个添加用户的方法。当B系统要实现添加用户的需求时，有一个简单粗暴的方法，就是把A系统中添加用户的方法一摸一样拷贝一份到B系统，这样的弊端相信大家都深有体会，就是以后维护此方法时，需要同时维护两个系统的功能代码。
+        
+          <p class="article-more-link">
+            <a href="/2017/10/13/yunkai_hessian/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/13/yunkai_hessian/" data-id="cjevgl2tk0008qibrne05pdd4" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hessian/">hessian</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-yunkai_mysql_read_write" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/15/yunkai_mysql_read_write/" class="article-date">
+  <time datetime="2017-09-15T14:48:10.000Z" itemprop="datePublished">2017-09-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/15/yunkai_mysql_read_write/">mysql实现读写分离</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><a href="https://jiongjiongge.github.io/2017/09/08/yunkai_mysql_master_slave/#more" target="_blank" rel="noopener">mysql单机配置多实例子后实现mysql主从复制</a>此篇中已经提到mysql主从复制和读写分离的概念和应用场景，并且告诉大家如何去实现mysql的主从复制，这也为我们今天要开展的mysql读写分离提供了数据一致性的服务。那么，话不多说，开始我们今天的实践之旅。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131、MAVEN apache-maven-3.5.0</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis、Mysql<br>
+        
+          <p class="article-more-link">
+            <a href="/2017/09/15/yunkai_mysql_read_write/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/15/yunkai_mysql_read_write/" data-id="cjevgl2tq000dqibr35hyq3v3" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li></ul>
+
     </footer>
   </div>
   
@@ -108,6 +502,11 @@
   
 
 
+  <nav id="page-nav">
+    
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">weiter &raquo;</a>
+  </nav>
+
 </section>
         
           <aside id="sidebar">
@@ -116,15 +515,29 @@
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
     <h3 class="widget-title">Archiv</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
     </div>
   </div>
 
@@ -137,7 +550,23 @@
       <ul>
         
           <li>
-            <a href="/2018/03/15/hello-world/">Hello World</a>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
           </li>
         
       </ul>

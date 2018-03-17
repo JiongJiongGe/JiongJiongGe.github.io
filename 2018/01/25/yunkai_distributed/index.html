@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>服务间调用，保证数据的正确性 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="应用场景在实际的开发中，我们往往会将一个大的系统划分为多个业务模块，这些模块可能部署在相同的机器上，也可能部署在不同的机器上，各个业务模块之间通过接口进行数据交互，通常接口间的访问通过RPC(远程过程调用)的方式。但在实际场景中，调用者调用服务(以下称被调用者)的新增/修改数据接口成功后，返回到调用者，若在调用者后续业务逻辑中出现错误，必须将被调用者的数据回滚，从而保证数据的正确性。然而由于此流程">
+<meta name="keywords" content="Hessian,Rabbitmq">
+<meta property="og:type" content="article">
+<meta property="og:title" content="服务间调用，保证数据的正确性">
+<meta property="og:url" content="http://yoursite.com/2018/01/25/yunkai_distributed/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="应用场景在实际的开发中，我们往往会将一个大的系统划分为多个业务模块，这些模块可能部署在相同的机器上，也可能部署在不同的机器上，各个业务模块之间通过接口进行数据交互，通常接口间的访问通过RPC(远程过程调用)的方式。但在实际场景中，调用者调用服务(以下称被调用者)的新增/修改数据接口成功后，返回到调用者，若在调用者后续业务逻辑中出现错误，必须将被调用者的数据回滚，从而保证数据的正确性。然而由于此流程">
+<meta property="og:updated_time" content="2018-03-17T14:18:17.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="服务间调用，保证数据的正确性">
+<meta name="twitter:description" content="应用场景在实际的开发中，我们往往会将一个大的系统划分为多个业务模块，这些模块可能部署在相同的机器上，也可能部署在不同的机器上，各个业务模块之间通过接口进行数据交互，通常接口间的访问通过RPC(远程过程调用)的方式。但在实际场景中，调用者调用服务(以下称被调用者)的新增/修改数据接口成功后，返回到调用者，若在调用者后续业务逻辑中出现错误，必须将被调用者的数据回滚，从而保证数据的正确性。然而由于此流程">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-yunkai_distributed" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/25/yunkai_distributed/" class="article-date">
+  <time datetime="2018-01-25T13:51:10.000Z" itemprop="datePublished">2018-01-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      服务间调用，保证数据的正确性
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的开发中，我们往往会将一个大的系统划分为多个业务模块，这些模块可能部署在相同的机器上，也可能部署在不同的机器上，各个业务模块之间通过接口进行数据交互，通常接口间的访问通过RPC(远程过程调用)的方式。<br>但在实际场景中，调用者调用服务(以下称被调用者)的新增/修改数据接口成功后，返回到调用者，若在调用者后续业务逻辑中出现错误，必须将被调用者的数据回滚，从而保证数据的正确性。然而由于此流程并非在同一个事务中，故需增加额外的操作来保证，这就是此篇的由来。<br><a id="more"></a></p>
+<h2 id="问题来源"><a href="#问题来源" class="headerlink" title="问题来源"></a>问题来源</h2><p>云开：大🐮，我发现在我们的系统中，服务的引用采用maven引入jar包的方式可以在service层用注解或者别的方式保证事务的一致性和正确性，而通过RPC，该方式则行不通，是什么原因呢？<br>大🐮：是的，采用maven引入jar是一种入侵式的行为，所以在service层做事务的控制就可以保证了，而RPC远程调度类其实是一种分布式的调用，是没有有效的方法，可以保证事务的一致的。<br>云开：那我们可以采取怎么样的方式去保证统一呢？<br>大🐮：一般当程序错误出现时，会采用一些补偿的措施，以弥补事务无法达到的一致性。<br>云开：好的，我知道了，我去想想看怎么实现。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>本篇中采用Hessian的方式来做RPC的调用，补偿机制则采用Rabbitmq消息队列通知，同时完成补偿动作。由于需借助服务的调用，需要调用者和被调用者，这里用了两个项目来模拟实际调用场景。由于在之前的文章中，已经介绍过<a href="https://jiongjiongge.github.io/2017/10/13/yunkai_hessian/#more" target="_blank" rel="noopener">Hessian的使用</a>和<a href="https://jiongjiongge.github.io/2017/08/26/yunkai_springboot_rabbit_handle_reply/#more" target="_blank" rel="noopener">Rabbitmq的使用</a>，对于这两个技术点，在此篇中会一笔带过，有不明确的童鞋可以去相关的文档查看。</p>
+<h3 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h3><p>JDK 1.8.0_131<br>MAVEN apache-maven-3.5.0 </p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>SpringBoot、Mybatis、Hessian、Rabbitmq</p>
+<h3 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h3><p>IntelliJ IDEA 2(开发工具大家可以根据自己的喜好而定)</p>
+<h3 id="实践过程"><a href="#实践过程" class="headerlink" title="实践过程"></a>实践过程</h3><h4 id="被调用者-用户服务模块"><a href="#被调用者-用户服务模块" class="headerlink" title="被调用者_用户服务模块"></a>被调用者_用户服务模块</h4><p>一、编写被调用者对外暴露的API<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public interface APIUserService &#123;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 新增用户</span><br><span class="line">     *</span><br><span class="line">     * @param userName  用户名称</span><br><span class="line">     * @param userPhone  用户联系方式</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    public RpcResult&lt;Integer&gt; saveUser(String userName, String userPhone);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Service(&quot;apiUserService&quot;)</span><br><span class="line">public class APIUserServiceImpl implements APIUserService&#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private YunKaiUserService yunKaiUserService;</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 新增用户</span><br><span class="line">     *</span><br><span class="line">     * @param userName  用户名称</span><br><span class="line">     * @param userPhone  用户联系方式</span><br><span class="line">     * @return</span><br><span class="line">     */</span><br><span class="line">    @Override</span><br><span class="line">    public RpcResult&lt;Integer&gt; saveUser(String userName, String userPhone)&#123;</span><br><span class="line">        return yunKaiUserService.saveUser(userName, userPhone);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>说明：<br>1、APIUserService为用户服务模块暴露给其他工程的接口，所有需调用用户模块的逻辑都需走此接口，此处仅模拟了新增用户的方法，但在实际应用中，暴露的方法会更多。<br>2、yunKaiUserService，这个就是我们日常所见的Service层对象，在此方法中，会声明对应的Mapper，从而完成到数据库的新增、删除、搜索数据的业务。</p>
+<p>二、通过Hessian的方式将API接口暴露出去</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class HessionExportConfig &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private APIUserService apiUserService;</span><br><span class="line"></span><br><span class="line">    @Bean(name = &quot;/apiUserServiceExporter.hessian&quot;)</span><br><span class="line">    public HessianServiceExporter accountService() &#123;</span><br><span class="line">        HessianServiceExporter exporter = new HessianServiceExporter();</span><br><span class="line">        exporter.setService(apiUserService);</span><br><span class="line">        exporter.setServiceInterface(APIUserService.class);</span><br><span class="line">        return exporter;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>说明：通过注解和Hessian的方式，将API暴露出去，供其他服务调用。</p>
+<h4 id="调用者"><a href="#调用者" class="headerlink" title="调用者"></a>调用者</h4><p>一、通过Hessian将服务注入到项目中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class HessianClientConfig &#123;</span><br><span class="line"></span><br><span class="line">    @Bean</span><br><span class="line">    public HessianProxyFactoryBean clientConfig()&#123;</span><br><span class="line">        HessianProxyFactoryBean proxy = new HessianProxyFactoryBean();</span><br><span class="line">        proxy.setServiceUrl(&quot;http://127.0.0.1:8911/apiUserServiceExporter.hessian&quot;);</span><br><span class="line">        proxy.setServiceInterface(APIUserService.class);</span><br><span class="line">        return proxy;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>说明：在调用者需额外声明APIUserService这个接口，但需注意的是，在调用者只需声明接口，而不需要编写对应的实现类。因为借助于Hessian的特性，会通过接口的名字，在被调用者找到对应的注入Service。</p>
+<p>二、编写逻辑，调用服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;/distributed&quot;)</span><br><span class="line">public class DistributedController &#123;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(DistributedController.class);</span><br><span class="line"></span><br><span class="line">    private final String TOPIC_EXCHANGE = &quot;topicExchange&quot;;</span><br><span class="line"></span><br><span class="line">    private final String ROUTING_KEY = &quot;topic.two&quot;;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private APIUserService apiUserService;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RabbitTemplate rabbitTemplate;</span><br><span class="line"></span><br><span class="line">    @RequestMapping(value = &quot;/save&quot;)</span><br><span class="line">    public RpcResult&lt;Integer&gt; save(String userName, String userPhone)&#123;</span><br><span class="line">        RpcResult&lt;Integer&gt; result = null;</span><br><span class="line">        try &#123;</span><br><span class="line">            result = apiUserService.saveUser(userName, userPhone);</span><br><span class="line">            //模拟rpc服务请求后出现错误</span><br><span class="line">            int a = 1 / 0;</span><br><span class="line">            return result;</span><br><span class="line">        &#125;catch (Exception e)&#123;</span><br><span class="line">            logger.error(&quot;error : &#123;&#125;&quot;, e);</span><br><span class="line">            //当出现错误时，通过rabbitmq消息，回滚数据</span><br><span class="line">            rabbitTemplate.convertAndSend(TOPIC_EXCHANGE, ROUTING_KEY, new Gson().toJson(result.getValue()));</span><br><span class="line">        &#125;</span><br><span class="line">        return RpcResult.ofError(ErrorCode.BIZ_ERROR.getCode(), ErrorCode.BIZ_ERROR.getMsg(&quot;新增用户&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>说明：<br>1、之前介绍补偿机制通过Rabbitmq消息队列实现，故在此注入了rabbitTemplate对象，并声明消息发送对应的交换机和队列接受方式。<br>2、为模拟出RPC远程调用服务后，走补偿机制，故此处增加int a = 1/0逻辑，实现在调用RPC后，出现对应的错误，走补偿机制的逻辑。<br>3、此控制器实现逻辑为首先调用用户服务，保存用户对象，当RPC结果返回后，在主流程出现错误，走对应的补偿机制，起到事务的一致性。<br>4、result对象，包含了新加入的对象的主键id，当出现错误时，将对应的id信息发给队列，从而对此数据进行补偿。</p>
+<h4 id="被调用者-消息队列处理逻辑"><a href="#被调用者-消息队列处理逻辑" class="headerlink" title="被调用者_消息队列处理逻辑"></a>被调用者_消息队列处理逻辑</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">@Service</span><br><span class="line">public class QueueConsumer implements ChannelAwareMessageListener &#123;</span><br><span class="line"></span><br><span class="line">    enum DealResult &#123;</span><br><span class="line">        ACCEPT,  // 处理成功</span><br><span class="line">        RETRY,   // 可以重试的错误</span><br><span class="line">        REJECT,  // 无需重试的错误</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static final Logger logger = LoggerFactory.getLogger(QueueConsumer.class);</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private YunKaiUserService yunKaiUserService;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void onMessage(Message message, Channel channel) throws Exception &#123;</span><br><span class="line">        String dataId = new String(message.getBody());</span><br><span class="line">        Integer id = Integer.parseInt(dataId);</span><br><span class="line"></span><br><span class="line">        DealResult dealResult = DealResult.ACCEPT;</span><br><span class="line">        try&#123;</span><br><span class="line">            yunKaiUserService.delete(id);</span><br><span class="line">         &#125; catch(Exception e)&#123;</span><br><span class="line">            dealResult = DealResult.REJECT;</span><br><span class="line">         &#125; finally &#123;</span><br><span class="line">            if(dealResult == DealResult.ACCEPT)&#123;</span><br><span class="line">                //通知队列消息已消费</span><br><span class="line">                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);</span><br><span class="line">            &#125;else if(dealResult == DealResult.REJECT)&#123;</span><br><span class="line">                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false,false);</span><br><span class="line">            &#125;else&#123;</span><br><span class="line">                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false,true);</span><br><span class="line">            &#125;</span><br><span class="line">         &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>说明：<br>处理消息的方式，是将受到的消息，取出对应的数据，将刚新增成功的用户isDelete状态置为已删除状态，从而避免了数据库中脏数据的生成。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在分布式远程调用中，传统的保证事务一致性的方式并不支持，此时我们就需要对应的补偿机制，此篇只是提供了一种保证的方式，大家也可以用别的方式实现。最后也是特别重要的一点，童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。大家，下次见。<br>附<a href="https://github.com/JiongJiongGe/BlogDistributedClient" target="_blank" rel="noopener">GitHub项目链接地址_调用者</a><br>附<a href="https://github.com/JiongJiongGe/BlogDistributedServer" target="_blank" rel="noopener">GitHub项目链接地址_提供者</a></p>
+<p>LINKS：<br><a href="https://juejin.im/user/59e614636fb9a044ff308a05" target="_blank" rel="noopener">云开的掘金地址</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/01/25/yunkai_distributed/" data-id="cjevgl2th0004qibr6yrqi4vy" class="article-share-link">Teilen</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/02/10/yunkai_dubbo/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Neuer</strong>
+      <div class="article-nav-title">
+        
+          Dubbo 服务提供方、消费方
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/01/08/yunkai_aop_application/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Älter</strong>
+      <div class="article-nav-title">Spring之AOP应用场景(二)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archiv</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">letzter Beitrag</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
+          </li>
+        
+          <li>
+            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
+          </li>
+        
+          <li>
+            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

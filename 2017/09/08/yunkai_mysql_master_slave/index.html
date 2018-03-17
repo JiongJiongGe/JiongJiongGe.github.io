@@ -1,93 +1,87 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
 <head>
   <meta charset="utf-8">
   
+  <title>mysql单机配置多实例子后实现mysql主从复制 | Hexo</title>
 
   
-  <title>mysql单机配置多实例子后实现mysql主从复制 | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="概念Mysql主从复制：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。Mysql读写分离：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分">
-<meta name="keywords" content="mysql">
-<meta property="og:type" content="article">
-<meta property="og:title" content="mysql单机配置多实例子后实现mysql主从复制">
-<meta property="og:url" content="http://yoursite.com/2017/09/08/yunkai_mysql_master_slave/index.html">
-<meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="概念Mysql主从复制：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。Mysql读写分离：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分">
-<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_mysql_master_slave_position.png">
-<meta property="og:image" content="http://obbgpy87z.bkt.clouddn.com/blog_mysql_master_slave_slavestatus.png">
-<meta property="og:updated_time" content="2018-03-17T14:18:26.000Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="mysql单机配置多实例子后实现mysql主从复制">
-<meta name="twitter:description" content="概念Mysql主从复制：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。Mysql读写分离：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分">
-<meta name="twitter:image" content="http://obbgpy87z.bkt.clouddn.com/blog_mysql_master_slave_position.png">
+  <meta name="author" content="John Doe">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+
+  
+  <meta name="description" content="概念Mysql主从复制：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。Mysql读写分离：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分别由不同的服务器负责，一般是Mater负责写，Slave负责读，且一般是配置一写多读(当然这个不是唯一的方式，可以根据场景配置)。">
+  
+
   
   
-    <link rel="icon" href="/favicon.png">
+  <meta name="keywords" content="mysql">
   
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="mysql单机配置多实例子后实现mysql主从复制"/>
+
+  <meta property="og:site_name" content="Hexo"/>
+
   
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <meta property="og:image" content="/favicon.ico"/>
   
-  <link rel="stylesheet" href="/css/style.css">
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
 </head>
 
+
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
-      </h1>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
-        
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Suche"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-      <div class="outer">
-        <section id="main"><article id="post-yunkai_mysql_master_slave" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/08/yunkai_mysql_master_slave/" class="article-date">
-  <time datetime="2017-09-08T13:48:10.000Z" itemprop="datePublished">2017-09-08</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      mysql单机配置多实例子后实现mysql主从复制
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">Hexo</a>
     </h1>
+    <p class="site-description"></p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>mysql单机配置多实例子后实现mysql主从复制</span></h3>
+    
   
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2017/09/08/yunkai_mysql_master_slave/" rel="bookmark">
+        <time class="entry-date published" datetime="2017-09-08T13:48:10.000Z">
+          2017-09-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
       
         <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>Mysql主从复制</strong>：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。<br><strong>Mysql读写分离</strong>：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分别由不同的服务器负责，一般是Mater负责写，Slave负责读，且一般是配置一写多读(当然这个不是唯一的方式，可以根据场景配置)。<a id="more"></a></p>
 <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的生产环境中，由单台Mysql作为独立的数据库有时是不能满足实际需求的，无论是在安全性、健壮性、高可用性以及高并发等各个方面。因此，一般情况下通过主从复制(Master-Slave)的方式来同步数据，再通过读写分离(Mysql-Proxy)来提供数据库的并发负载能力，主要优点体现在以下几个方面：</p>
@@ -127,138 +121,44 @@
 
       
     </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/08/yunkai_mysql_master_slave/" data-id="cjevgl2to000bqibr8bcpcxpx" class="article-share-link">Teilen</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li></ul>
 
-    </footer>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2017/09/15/yunkai_mysql_read_write/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Neuer</strong>
-      <div class="article-nav-title">
-        
-          mysql实现读写分离
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2017/08/26/yunkai_springboot_rabbit_handle_reply/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Älter</strong>
-      <div class="article-nav-title">springboot实现rabbitmq消息队列_ACK手动确认机制</div>
-    </a>
-  
-</nav>
 
-  
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/mysql/">mysql</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
 </article>
 
-</section>
-        
-          <aside id="sidebar">
-  
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
     
-
-  
+    &copy; 2018 John Doe
     
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Dubbo/">Dubbo</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Executor/">Executor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Future/">Future</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hessian/">Hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Rabbitmq/">Rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/">ThreadPoolExecutor</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Zookeeper/">Zookeeper</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/">aop</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hessian/">hessian</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jedis/">jedis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mysql/">mysql</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/rabbitmq/">rabbitmq</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/redis/">redis</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/singleton/">singleton</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/springboot/">springboot</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/导航篇/">导航篇</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/线程/">线程</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/Dubbo/" style="font-size: 10px;">Dubbo</a> <a href="/tags/Executor/" style="font-size: 10px;">Executor</a> <a href="/tags/Future/" style="font-size: 10px;">Future</a> <a href="/tags/Hessian/" style="font-size: 10px;">Hessian</a> <a href="/tags/Rabbitmq/" style="font-size: 10px;">Rabbitmq</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/Zookeeper/" style="font-size: 10px;">Zookeeper</a> <a href="/tags/aop/" style="font-size: 15px;">aop</a> <a href="/tags/hessian/" style="font-size: 10px;">hessian</a> <a href="/tags/jedis/" style="font-size: 10px;">jedis</a> <a href="/tags/mysql/" style="font-size: 15px;">mysql</a> <a href="/tags/rabbitmq/" style="font-size: 15px;">rabbitmq</a> <a href="/tags/redis/" style="font-size: 10px;">redis</a> <a href="/tags/singleton/" style="font-size: 10px;">singleton</a> <a href="/tags/springboot/" style="font-size: 20px;">springboot</a> <a href="/tags/导航篇/" style="font-size: 10px;">导航篇</a> <a href="/tags/线程/" style="font-size: 10px;">线程</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archiv</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">letzter Beitrag</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2018/03/17/yunkai_executor_future/">借助于线程池的Executor框架+Future 实现并发编程</a>
-          </li>
-        
-          <li>
-            <a href="/2018/02/10/yunkai_dubbo/">Dubbo 服务提供方、消费方</a>
-          </li>
-        
-          <li>
-            <a href="/2018/01/25/yunkai_distributed/">服务间调用，保证数据的正确性</a>
-          </li>
-        
-          <li>
-            <a href="/2018/01/08/yunkai_aop_application/">Spring之AOP应用场景(二)</a>
-          </li>
-        
-          <li>
-            <a href="/2018/01/01/yunkai_aop/">Spring之AOP介绍</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      &copy; 2018 John Doe<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
+  </p>
 </footer>
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
     
-
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-
-
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
-
-
-<script src="/js/script.js"></script>
-
-
-
   </div>
+</div>
 </body>
 </html>

@@ -65,6 +65,58 @@
 
   
     
+    <h3 class="article-title"><a href="/2017/09/08/yunkai_mysql_master_slave/"><span>mysql单机配置多实例子后实现mysql主从复制</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2017/09/08/yunkai_mysql_master_slave/" rel="bookmark">
+        <time class="entry-date published" datetime="2017-09-08T13:48:10.000Z">
+          2017-09-08
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>Mysql主从复制</strong>：指的是Mysql从服务器(Slave)从主Mysql主服务器(Master)同步数据，更具体的说是Slave从Master的二进制日志(bin_log)中读取事件，保存在Slave的中继日志(relay_log)中，然后Slave再从中继日志中读取出来再执行一遍。<br><strong>Mysql读写分离</strong>：指的是对Mysql的写入操作(update、insert)和读取操作(select)分开，分别由不同的服务器负责，一般是Mater负责写，Slave负责读，且一般是配置一写多读(当然这个不是唯一的方式，可以根据场景配置)。
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/mysql/">mysql</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2017/08/26/yunkai_springboot_rabbit_handle_reply/"><span>springboot实现rabbitmq消息队列_ACK手动确认机制</span></a></h3>
     
   

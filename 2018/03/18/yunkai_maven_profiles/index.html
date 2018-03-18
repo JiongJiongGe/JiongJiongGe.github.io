@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>通过配置Maven的profiles实现不同环境的打包，以减少修改配置文件的动作 | 守得云开见月明 | 在IT海洋打滚的小🐳</title>
+
+  
+  <meta name="author" content="云开">
+  
+
+  
+  <meta name="description" content="在IT海洋打滚的小🐳">
+  
+
+  
+  
+  <meta name="keywords" content="Maven,SpringBoot">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="通过配置Maven的profiles实现不同环境的打包，以减少修改配置文件的动作"/>
+
+  <meta property="og:site_name" content="守得云开见月明"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="守得云开见月明" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">守得云开见月明</a>
+    </h1>
+    <p class="site-description">在IT海洋打滚的小🐳</p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">首页</a></li>
+      
+        <li><a href="/about">关于</a></li>
+      
+        <li><a href="/archives">归档</a></li>
+      
+        <li><a href="/tags">标签</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>通过配置Maven的profiles实现不同环境的打包，以减少修改配置文件的动作</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/03/18/yunkai_maven_profiles/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-03-18T06:35:20.000Z">
+          2018-03-18
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的软件开发中，项目在开发环境和部署环境中，配置文件多多少少会存在一些差异，例如：数据库的配置信息、运行端口等。如果需要开发的童鞋根据部署的环境，去修改对应的配置信息的话，无疑会增加部署时间，同时也会增加部署错误的风险。<br><a id="more"></a></p>
+<h2 id="Maven介绍"><a href="#Maven介绍" class="headerlink" title="Maven介绍"></a>Maven介绍</h2><p>官网介绍：<br>Apache Maven is a software project management and comprehension tool. Based on the concept of a project object model (POM), Maven can manage a project’s build, reporting and documentation from a central piece of information</p>
+<p>中文翻译：<br>Apache Maven是一个项目管理和理解工具，它基于项目对象模型(POM)的概念，它可以管理项目的构建、报告和文档。今天，我们就通过Maven的profiles配置，来实现不修改配置文件，对不同环境打包。</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>由于不同的工程配置文件会有差异，故在此篇中，主要以数据库配置信息的差异来贯彻。</p>
+<h4 id="一、构建项目"><a href="#一、构建项目" class="headerlink" title="一、构建项目"></a>一、构建项目</h4><p>构建Domian、Mapper、Service、Controller层，相信童鞋的水平都是棒棒的，这边就不一一罗列对应的方法，我是通过获取用户列表信息来查看是否配置成功。(我在两个环境的DB中，添加了不同的用户信息)</p>
+<h4 id="二、配置不同环境的配置文件"><a href="#二、配置不同环境的配置文件" class="headerlink" title="二、配置不同环境的配置文件"></a>二、配置不同环境的配置文件</h4><p><img src="http://obbgpy87z.bkt.clouddn.com/blog_maven_1.png" alt="项目环境"></p>
+<p>说明：<br>在resources目录下，增加dev和produce两个文件夹，用于存放不同的配置文件。</p>
+<p><strong>application.properties文件：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">server.port = 8911</span><br><span class="line"></span><br><span class="line">spring.datasource.driver-class-name = com.mysql.jdbc.Driver</span><br><span class="line">spring.datasource.url = jdbc:mysql://localhost:3306/db_setting_dev?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false</span><br><span class="line">spring.datasource.username = root</span><br><span class="line">spring.datasource.password = yunkai</span><br><span class="line"></span><br><span class="line">logging.file = env.setting.log</span><br><span class="line">logging.level.org.springframework.web = INFO</span><br></pre></td></tr></table></figure>
+<p>说明：<br>两个application.properties文件，只有spring.datasource.url不同，表示链接不同的数据库，其他内容相同。</p>
+<h4 id="三、配置Maven的pom-xml文件，使用profiles标签，完成对不同环境打包的编写"><a href="#三、配置Maven的pom-xml文件，使用profiles标签，完成对不同环境打包的编写" class="headerlink" title="三、配置Maven的pom.xml文件，使用profiles标签，完成对不同环境打包的编写"></a>三、配置Maven的pom.xml文件，使用profiles标签，完成对不同环境打包的编写</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&lt;profiles&gt;</span><br><span class="line">	&lt;profile&gt;</span><br><span class="line">		&lt;id&gt;dev&lt;/id&gt;</span><br><span class="line">		&lt;properties&gt;</span><br><span class="line">		   &lt;profileActive&gt;dev&lt;/profileActive&gt;					    &lt;/properties&gt;</span><br><span class="line">		&lt;activation&gt;</span><br><span class="line">			&lt;activeByDefault&gt;true&lt;/activeByDefault&gt;			           &lt;/activation&gt;</span><br><span class="line">	&lt;/profile&gt;</span><br><span class="line">	&lt;profile&gt;</span><br><span class="line">		&lt;id&gt;produce&lt;/id&gt;</span><br><span class="line">		&lt;properties&gt;</span><br><span class="line">		   &lt;profileActive&gt;produce&lt;/profileActive&gt;</span><br><span class="line">		&lt;/properties&gt;</span><br><span class="line">	&lt;/profile&gt;</span><br><span class="line">&lt;/profiles&gt;</span><br><span class="line"></span><br><span class="line">&lt;build&gt;</span><br><span class="line">	&lt;resources&gt;</span><br><span class="line">		&lt;resource&gt;</span><br><span class="line">			&lt;directory&gt;src/main/resources&lt;/directory&gt;</span><br><span class="line">			&lt;excludes&gt;</span><br><span class="line">				&lt;exclude&gt;dev/application.properties&lt;/exclude&gt;</span><br><span class="line">			   &lt;exclude&gt;produce/application.properties&lt;/exclude&gt;</span><br><span class="line">			&lt;/excludes&gt;</span><br><span class="line">		&lt;/resource&gt;</span><br><span class="line">		&lt;resource&gt;</span><br><span class="line">			&lt;directory&gt;src/main/resources/$&#123;profileActive&#125;&lt;/directory&gt;</span><br><span class="line">			&lt;includes&gt;</span><br><span class="line">				&lt;include&gt;application.properties&lt;/include&gt;</span><br><span class="line">			&lt;/includes&gt;</span><br><span class="line">		&lt;/resource&gt;</span><br><span class="line">	&lt;/resources&gt;</span><br><span class="line">&lt;/build&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>描述：</strong><br>dev开发环境、produce部署环境，对于dev开发环境需加载dev/application.properties，而对于produce部署环境来讲，则需加载produce/application.properties的配置文件。</p>
+<p><strong>标签说明：</strong><br>1、profiles profile定义不同环境的参数变量；<br>2、<activebydefault>true</activebydefault> 设定为默认激活参数，即打包时，如果不指定对应的环境信息，则加载dev下的环境变了；<br>3、build resources 则表示打包时，需要加载的资源文件；<br>4、excludes exclude 表示打包时，在加载src/main/resources文件夹下的资源时，过滤掉dev/application.properties和produce/application.properties文件。<br>5、${profileActive}，则是可变参数，如果mvn clean package时未指定时，则为<activebydefault>true</activebydefault>修饰的变量，当mvn clean  package -P produce指定对应的参数时，则为指定值。</p>
+<h4 id="四、mvn-clean-package-P-dev"><a href="#四、mvn-clean-package-P-dev" class="headerlink" title="四、mvn clean package -P dev"></a>四、mvn clean package -P dev</h4><p>根据部署的环境，对项目进行打包， -P 后面的内容名称为profiles profile id对应的信息，从而能够找到对应适合的配置文件。</p>
+<h4 id="五、运行结果"><a href="#五、运行结果" class="headerlink" title="五、运行结果"></a>五、运行结果</h4><p><img src="http://obbgpy87z.bkt.clouddn.com/blog_maven_2.png" alt="1"></p>
+<p><img src="http://obbgpy87z.bkt.clouddn.com/blog_maven_3.png" alt="2"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过这样的配置，可以免去开发的童鞋频繁切换配置文件，希望对大家有所帮助。最后，农历二月初二，注定是个不平凡的日子，CRR，Hope everying will be well。童鞋们如果有更好的理解可以加我微信：wjd632479475，希望能和你认识。大家，下次见。</p>
+<p>附<a href="https://github.com/JiongJiongGe/env.setting" target="_blank" rel="noopener">GitHub项目链接地址</a></p>
+<p>LINKS：<br><a href="https://maven.apache.org/" target="_blank" rel="noopener">Maven官网</a></p>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/Maven/">Maven</a><a href="/tags/SpringBoot/">SpringBoot</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2018 云开
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>

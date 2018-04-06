@@ -65,6 +65,58 @@
 
   
     
+    <h3 class="article-title"><a href="/2018/04/06/yunkai_semaphore/"><span>使用Semaphore信号量，来控制资源池的使用情况</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/04/06/yunkai_semaphore/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-04-06T04:37:20.000Z">
+          2018-04-06
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的开发过程中，为了提高程序的响应速度和响应效率等，往往会初始化一些资源池，提供给程序调用。在本篇中，我们将通过Semaphore信号量，来控制资源池内资源的使用情况，例如：资源的占用、释放。<br>
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/Semaphore/">Semaphore</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2018/03/18/yunkai_maven_profiles/"><span>通过配置Maven的profiles实现不同环境的打包，以减少修改配置文件的动作</span></a></h3>
     
   
@@ -524,59 +576,6 @@
     <span class="post-tags">
       <i class="icon-tags"></i>
         <a href="/tags/singleton/">singleton</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2017/10/13/yunkai_hessian/"><span>Hessian远程调用服务实现</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2017/10/13/yunkai_hessian/" rel="bookmark">
-        <time class="entry-date published" datetime="2017-10-13T10:48:10.000Z">
-          2017-10-13
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>Hessian调用是基于HTTP的轻量级远程服务调用，提供了较轻量的方法实现了RMI(远程方法调用)的功能，与WebService相比，Hessian更简单、快捷。Hessian采用了二进制协议，因此它更适合于发送二进制数据。往简单了说，Hessian支持提供自定义API接口方法供工程间的远程调用。</p>
-<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>举个例子来说，因业务需求需要，开发了A和B两个系统，基本上所有与用户相关的都在A系统中，其中就有个添加用户的方法。当B系统要实现添加用户的需求时，有一个简单粗暴的方法，就是把A系统中添加用户的方法一摸一样拷贝一份到B系统，这样的弊端相信大家都深有体会，就是以后维护此方法时，需要同时维护两个系统的功能代码。
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/hessian/">hessian</a>
     </span>
     
 

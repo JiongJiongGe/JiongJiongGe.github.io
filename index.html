@@ -65,6 +65,64 @@
 
   
     
+    <h3 class="article-title"><a href="/2018/06/09/yunkai_shiro/"><span>二个月后的重见，借助Shiro验证调用者的身份及权限</span></a></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2018/06/09/yunkai_shiro/" rel="bookmark">
+        <time class="entry-date published" datetime="2018-06-09T01:35:20.000Z">
+          2018-06-09
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2><p>在实际的软件开发中，出于安全性的考虑，往往需要对访问者访问的页面、接口做权限管理。如果从功能上来讲，安全性的定义就是访问者是以正确的方式请求资源，因此我把日常功能分为普通功能和特定功能(这两个名词仅仅是个人的想法😊)。所谓的普通功能，从普通两个字就能解读出大概的意思，就是允许所有用户操作，而特定功能，则需要用户具备某种特定身份才能操作。当然实现权限控制的方式有很多种，<br>例如：</p>
+<ul>
+<li>AOP+Filter实现</li>
+<li>Spring Security</li>
+<li>etc…</li>
+</ul>
+<p>说完了应用场景，也列举了几个实现权限控制的方式，不过相信大家从标题中就能知道本篇讲的应该是另外一种实现权限控制的方式：Shiro，那么接下来就让我介绍下在此篇中的主人公。</p>
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+    
+
+    <span class="post-tags">
+      <i class="icon-tags"></i>
+        <a href="/tags/shiro/">shiro</a>
+    </span>
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+
+
+  <article>
+
+  
+    
     <h3 class="article-title"><a href="/2018/04/06/yunkai_semaphore/"><span>使用Semaphore信号量，来控制资源池的使用情况</span></a></h3>
     
   
@@ -524,58 +582,6 @@
     <span class="post-tags">
       <i class="icon-tags"></i>
         <a href="/tags/redis/">redis</a><a href="/tags/jedis/">jedis</a>
-    </span>
-    
-
-    </div>
-
-    
-  </div>
-</article>
-
-
-
-  <article>
-
-  
-    
-    <h3 class="article-title"><a href="/2017/10/29/yunkai_singleton/"><span>单例避免多线程同时修改同个值从而造成脏数据</span></a></h3>
-    
-  
-
-  <div class="article-top-meta">
-    <span class="posted-on">
-      <a href="/2017/10/29/yunkai_singleton/" rel="bookmark">
-        <time class="entry-date published" datetime="2017-10-29T05:44:10.000Z">
-          2017-10-29
-        </time>
-      </a>
-    </span>
-  </div>
-
-
-  
-
-  <div class="article-content">
-    <div class="entry">
-      
-        <h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p>单例模式是一种常用的软件设计模式。单例可以保证系统中一个类只有一个实例，即一个类只有一个对象实例。<br>优点：<br>&nbsp;&nbsp;&nbsp;(1)、实例控制<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;单例会阻止其他对象实例化其自己的对象副本，从而确保所有对象都访问唯一实例。<br>&nbsp;&nbsp;&nbsp;(2)、节约系统资源<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;由于系统内存中只存在一个对象，因此可以节约对象频繁创建和销毁。
-      
-    </div>
-
-  </div>
-
-  <div class="article-footer">
-    <div class="article-meta pull-left">
-
-    
-
-    
-    
-
-    <span class="post-tags">
-      <i class="icon-tags"></i>
-        <a href="/tags/singleton/">singleton</a>
     </span>
     
 
